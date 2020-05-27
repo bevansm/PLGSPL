@@ -5,18 +5,18 @@ A Python tool to convert PrarieLearn CSV results and files into a single PDF for
 ## Roadmap
 
 - pl element support:
-  [] `pl-string-input`
-  [] `pl-file-editor`
-  [] `pl-file-upload`
-  [] `pl-symbolic-input`
+  - [] `pl-string-input`
+  - [] `pl-file-editor`
+  - [] `pl-file-upload`
+  - [] `pl-symbolic-input`
 - cli:
-  [] `classlist`
-  [] `pdf`
-  [] `merge`
+  - [] `classlist`
+  - [] `pdf`
+  - [] `merge`
 
 ## Context
 
-In 2019W2, [Paul Carter](https://www.cs.ubc.ca/people/paul-carter) created a python script to stitch together files from the `pl-file-editor` element to upload to GradeScope. We've included his script/sample output under [ctx](ctx)and some of his thoughts in [paul.md](paul.md). The script is [pl-to-pdf](pl-to-pdf.py).
+In 2019W2, [Paul Carter](https://www.cs.ubc.ca/people/paul-carter) created a python script to stitch together files from the `pl-file-editor` element to upload to GradeScope. We've included his script/sample output under [ctx](ctx) and some of his thoughts in [paul.md](ctx/paul.md). The script is [pl-to-pdf](ctx/pl-to-pdf.py).
 
 ## Student Assignment Layout
 
