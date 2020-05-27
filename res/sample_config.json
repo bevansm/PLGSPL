@@ -1,0 +1,59 @@
+{
+  "uuid": "95bcb442-9101-4505-ba40-0ab4f24a0df6",
+  "type": "Exam",
+  "title": "Week 1 Practice",
+  "set": "Practice",
+  "number": "1",
+  "allowAccess": [
+    {
+      "mode": "Public",
+      "credit": 100,
+      "startDate": "2020-05-10T20:00:01",
+      "endDate": "2020-06-15T14:28:01"
+    }
+  ],
+  "zones": [
+    {
+      "questions": [
+        {
+          "description": "this is a simple string question with four input fields",
+          "id": "tree_traversal_find_all",
+          "points": 1
+        },
+        {
+          "description": "this is a string question with multiple types of inputs",
+          "id": "h1_2020S_2a_msamericana",
+          "points": 1
+        },
+        {
+          "description": "this is a generic ordering question where students have multiple alternatives.",
+          "numberChoose": 1,
+          "points": 1,
+          "alternatives": [
+            {
+              "id": "lq02_2a_bestworst",
+              "points": 1
+            },
+            {
+              "id": "lq02_2b_bestworst",
+              "points": 1
+            },
+            {
+              "id": "lq02_2c_bestworst",
+              "points": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "description": "this is a secondary zone",
+      "questions": [
+        {
+          "id": "lq03_1a_inssortitnum",
+          "points": 1
+        }
+      ]
+    }
+  ]
+}
