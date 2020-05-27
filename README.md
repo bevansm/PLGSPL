@@ -2,6 +2,12 @@
 
 A Python tool to convert PrarieLearn CSV results and files into a single PDF for upload to GradeScope.
 
+## Installation
+
+- Clone the repo
+- Run `pip install .`
+- Enjoy `plgspl`!
+
 ## Roadmap
 
 - pl element support:
