@@ -50,6 +50,12 @@ class AssignmentConfig:
         self.questions = dict()
         self.qlist = []
 
+    def get_question_count(self):
+        return len(self.qlist)
+
+    def get_variant_count(self):
+        return len(self.questions())
+
     def get_question_list(self) -> List[QuestionInfo]:
         return self.qlist
 

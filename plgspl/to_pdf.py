@@ -21,6 +21,8 @@ def to_pdf(out_file, info_json, manual_csv, file_dir=None):
         else:
             q = qs.QuestionInfo(qi['id'], i)
         config.add_question(q)
+    print(
+        f'Parsed config... Created {config.get_question_count()} questions and {config.get_variant_count()} variants...')
 
     # iterate over the rows of the csv and parse the data
     manual = pd.concat(pd.read_csv(manual_csv))
