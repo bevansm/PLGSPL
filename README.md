@@ -56,15 +56,19 @@ We are basing our assignment layout upon [paul's sample pdf output](ctx/h5j7k.pd
    1. pull out the `zones` object
    2. pull out the questions list
    3. build an assignment outline out of the questions list.
+      - set the max file size of each question to the env/cli var
+   4. check the files directory to see if the questions have corresponding files.
+      - is there a way to do this (cleanly)[https://stackoverflow.com/questions/845058/how-to-get-line-count-of-a-large-file-cheaply-in-python]?
+      - if so, update max_file_size for that question.
 2. for each student in the csv:
-   If they're the first student, prepare the template gs file.
-   1. put together the questions in the order provided. if we cannot find the quid in the csv, we assume that it's a file upload and look for the file in the zip folder.
+   1. If they're the first student, prepare the template gs file.
+   2. put together the questions in the order provided. if we cannot find the quid in the csv, we assume that it's a file upload and look for the file in the zip folder.
       - stitch in the question similar to paul if it's a file upload
       - if it's a string/mc question:
         1. parse the "params" object from the manual grading pdf.
         2. format the params & true_answer object to give the ta context.
         3. format submitted_answer
-   2. if it's already been graded by pl as correct (i.e. matched answer), add a "CORRECT" flag underneath the question context so we can use the gs ai to filter out these answers.
+   3. if it's already been graded by pl as correct (i.e. matched answer), add a "CORRECT" flag underneath the question context so we can use the gs ai to filter out these answers.
 3. append the student to the main pdf
 4. move on to next student. continue until we've reached the end of the csv.
 
@@ -77,11 +81,12 @@ We are basing our assignment layout upon [paul's sample pdf output](ctx/h5j7k.pd
   - `FILE_DIR` should be an unzipped file directory that corresponds to `**_files_for_manual_grading.zip` for `MANUAL_CSV`
   - `INFO_JSON` should be the `infoAssesment.json` file that we used to build the assignment.
 - `plgspl merge <assignment_name> <pl_csv> <gs_csv>`
-  - Merges the gs and pl csv files for a given assignment into an updated pl csv file: `<assignment_name>_pl_by_question.csv`. Expects the input pl csv file to be the form of a `best_submissions` or `final_submissions` csv file.
+  - Merges the gs and pl csv files for a given assignment into an updated pl csv file: `<assignment_name>_pl_by_question.csv`.
+  - Expects the input pl csv file to be the form of a `best_submissions` or `final_submissions` csv file.
 
 ## File Structure
 
-- [src](src): Python Scripts
+- [plgspl](plgspl): Cli scripts
 - [res](res): Scrubbed Sample Data (taken from 2020S1 MT2)
 - [ctx](ctx): Paul's files
 
