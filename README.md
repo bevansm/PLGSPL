@@ -73,14 +73,15 @@ To take advantage of gradescope's autogrouping AI, we append a "correctness box"
       - [is there a way to do this cleanly](https://stackoverflow.com/questions/845058/how-to-get-line-count-of-a-large-file-cheaply-in-python)?
       - if so, update max_file_size for that question.
 2. for each student in the csv:
+
    1. If they're the first student, prepare the template gs file.
    2. put together the questions in the order provided. if we cannot find the quid in the csv, we assume that it's a file upload and look for the file in the zip folder.
-      - stitch in the question similar to paul if it's a file upload
-      - if it's a string/mc question:
-        1. parse the "params" object from the manual grading pdf.
-        2. format the params & true_answer object to give the ta context.
-        3. format submitted_answer
-   3. if it's already been graded by pl as correct (i.e. matched answer), add a "CORRECT" flag underneath the question context so we can use the gs ai to filter out these answers.
+      - parse the "params" object from the manual grading pdf.
+      - format the params & true_answer object to give the ta context.
+      - if it's already been graded by pl as correct (i.e. matched answer), add a "CORRECT" flag underneath the question context so we can use the gs ai to filter out these answers.
+      - add submitted_answer
+      - add the file if there's a provided file upload
+
 3. append the student to the main pdf
 4. move on to next student. continue until we've reached the end of the csv.
 
