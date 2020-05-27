@@ -5,14 +5,14 @@ A Python tool to convert PrarieLearn CSV results and files into a single PDF for
 ## Roadmap
 
 - pl element support:
-  - [] `pl-string-input`
-  - [] `pl-file-editor`
-  - [] `pl-file-upload`
-  - [] `pl-symbolic-input`
+  - [ ] `pl-string-input`
+  - [ ] `pl-file-editor`
+  - [ ] `pl-file-upload`
+  - [ ] `pl-symbolic-input`
 - cli:
-  - [] `classlist`
-  - [] `pdf`
-  - [] `merge`
+  - [ ] `classlist`
+  - [ ] `pdf`
+  - [ ] `merge`
 
 ## Context
 
