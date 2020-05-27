@@ -32,6 +32,7 @@ We are basing our assignment layout upon [paul's sample pdf output](ctx/h5j7k.pd
 ### Assumptions
 
 - All variants of a given question have the same type.
+- A given question variant is only used in one question (the config uses the `numberChoose` instead)
 - We are given the `infoAssessment.json` file from the assignment configuration.
   - We will use the `zones` field to build the outline for the assignment, including question alternatives.
 - Student "fill in the blank" questions should not take more than two pages.
