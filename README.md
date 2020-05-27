@@ -51,13 +51,13 @@ We are basing our assignment layout upon [paul's sample pdf output](ctx/h5j7k.pd
    3. build an assignment outline out of the questions list.
 2. for each student in the csv:
    If they're the first student, prepare the template gs file.
-   2. put together the questions in the order provided. if we cannot find the quid in the csv, we assume that it's a file upload and look for the file in the zip folder.
+   1. put together the questions in the order provided. if we cannot find the quid in the csv, we assume that it's a file upload and look for the file in the zip folder.
       - stitch in the question similar to paul if it's a file upload
       - if it's a string/mc question:
         1. parse the "params" object from the manual grading pdf.
         2. format the params & true_answer object to give the ta context.
         3. format submitted_answer
-   3. if it's already been graded by pl as correct (i.e. matched answer), add a "CORRECT" flag at the top of the question so we can use the gs ai to filter out these answers.
+   2. if it's already been graded by pl as correct (i.e. matched answer), add a "CORRECT" flag underneath the question context so we can use the gs ai to filter out these answers.
 3. append the student to the main pdf
 4. move on to next student. continue until we've reached the end of the csv.
 
