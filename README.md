@@ -50,6 +50,18 @@ We are basing our assignment layout upon [paul's sample pdf output](ctx/h5j7k.pd
   - The student answer below the above "correctness indicator", so we can actually grade!
 - A file upload question should be preceeded by a page just with the question title/context for the grader. The remaining pages should be appended after that.
 
+### The "Correctness Box"
+
+To take advantage of gradescope's autogrouping AI, we append a "correctness box" onto different questions.
+
+<QUID> refers to the question variant.
+
+- A green box with the phrase "CORRECT <QUID>" corresponds to a correct answer.
+- A light blue box with the phrase "NO ANSWER <QUID>" corresponds to no given answer.
+- A yellow box with with the phrase "PARTIAL <QUID>" corresponds to a partial credit answer.
+- A red box with the phrase "INCORRECT <QUID>" corresponds to an incorrect answer.
+  We intend for this box to be used as the question matching anchor.
+
 ## PDF Generation Workflow
 
 1. parse `infoAssesement.json`
@@ -58,7 +70,7 @@ We are basing our assignment layout upon [paul's sample pdf output](ctx/h5j7k.pd
    3. build an assignment outline out of the questions list.
       - set the max file size of each question to the env/cli var
    4. check the files directory to see if the questions have corresponding files.
-      - is there a way to do this (cleanly)[https://stackoverflow.com/questions/845058/how-to-get-line-count-of-a-large-file-cheaply-in-python]?
+      - [is there a way to do this cleanly](https://stackoverflow.com/questions/845058/how-to-get-line-count-of-a-large-file-cheaply-in-python)?
       - if so, update max_file_size for that question.
 2. for each student in the csv:
    1. If they're the first student, prepare the template gs file.
