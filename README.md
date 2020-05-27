@@ -4,9 +4,10 @@ A Python tool to convert PrarieLearn CSV results and files into a single PDF for
 
 ## Installation
 
-- Clone the repo
-- Run `pip install .`
-- Enjoy `plgspl`!
+1. Clone the repo
+2. Run `pip install .` from the project directory.
+3. Enjoy!
+4. To uninstall, run `pip uninstall plgspl`.
 
 ## Roadmap
 
