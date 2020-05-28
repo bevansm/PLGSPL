@@ -5,6 +5,9 @@ import json
 import os
 
 
+config = json.load(os.path.join(os.path.dirname(__file__), 'defaults.json'))
+
+
 def get_max_pages():
     try:
         return int(os.environ.get("MAX_PAGES"))
@@ -33,6 +36,7 @@ class QuestionInfo:
                  variants: List[str] = None,
                  expect_files: bool = False,
                  number_choose: int = 1,
+                 max_file_pages: int = get_max_pages(),
                  max_pages: int = get_max_pages()):
         self.qid = qid
         self.number = number
@@ -70,6 +74,29 @@ class AssignmentConfig:
         return self.questions.get(qid)
 
 
+class StudentFileBundle():
+    def parse_filename(self, filename):
+        # TODO: parse off filename
+        return filename
+
+    def __init__(self, files: List[str] = []):
+        self.files = dict()
+        for file in files:
+            self.files[self.parse_filename(file)] = file
+
+    def add_file(self, file):
+        self.files[self.parse_filename(file)] = file
+
+    def render_file(self, pdf: FPDF, filename):
+        # TODO: write the name of the file to the pdf like a part header
+        # TODO: remove file from bundle once done
+        return None
+
+    def render_all(self, pdf: FPDF):
+        for f in self.files:
+            render_file(pdf, f)
+
+
 class StudentCSV():
     def set_question_ctx(self, params, answer):
         # TODO: parse this
@@ -94,29 +121,6 @@ class StudentCSV():
     def render(self, pdf: FPDF):
         self.render_ctx(pdf)
         self.render_ans(pdf)
-
-
-class StudentFileBundle():
-    def parse_filename(self, filename):
-        # TODO: parse off filename
-        return filename
-
-    def __init__(self, files: List[str] = []):
-        self.files = dict()
-        for file in files:
-            self.files[self.parse_filename(file)] = file
-
-    def add_file(self, file):
-        self.files[self.parse_filename(file)] = file
-
-    def render_file(self, pdf: FPDF, filename):
-        # TODO: write the name of the file to the pdf like a part header
-        # TODO: remove file from bundle once done
-        return None
-
-    def render_all(self, pdf: FPDF):
-        for f in self.files:
-            render_file(pdf, f)
 
 
 class StudentQuestion:
@@ -148,7 +152,10 @@ class Submission:
         return self.questions.get(variant)
 
     def render_front_page(self, pdf: FPDF):
-        # TODO: render the pl uid page
+        pdf.add_page()
+        pdf.set_font('courier', size=TITLE_FONT_SIZE)
+        pdf.cell(0, 60, ln=1)
+        pdf.cell(0, 20, f'PL UID: {self.uid}', ln=1, align='C')
         return None
 
     def render_submission(self, pdf: FPDF, qMap: AssignmentConfig):

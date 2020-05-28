@@ -1,0 +1,54 @@
+{
+  "maxPages": {
+    "description": "maximum pages to devote to a given file/answer type",
+    "file": 2,
+    "shortAnswer": 1
+  },
+  "page": {
+    "description": "page sizes in mm",
+    "width": 180
+  },
+  "font": {
+    "description": "Font configurations for different types of file text",
+    "title": {
+      "description": "student uid & cover page styles",
+      "size": 48,
+      "font": "courier"
+    },
+    "header": {
+      "description": "question titles",
+      "size": 0,
+      "font": "arial"
+    },
+    "subheader": {
+      "description": "question subheaders/parts",
+      "size": 11,
+      "font": "arial"
+    },
+    "body": {
+      "description": "file body text",
+      "size": 11,
+      "font": "arial"
+    },
+    "code": {
+      "extension": ["cpp", "h", "txt"],
+      "font": "",
+      "size": 11,
+      "indent": 5
+    }
+  },
+  "correctnessBox": {
+    "correct": {
+      "color": "green"
+    },
+    "incomplete": {
+      "color": "blue"
+    },
+    "partial": {
+      "color": "yellow"
+    },
+    "incorrect": {
+      "color": "red"
+    }
+  }
+}
