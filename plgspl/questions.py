@@ -1,6 +1,7 @@
 from fpdf import FPDF
 from enum import Enum
 from typing import List
+import json
 import os
 
 
@@ -54,7 +55,7 @@ class AssignmentConfig:
         return len(self.qlist)
 
     def get_variant_count(self):
-        return len(self.questions())
+        return len(self.questions)
 
     def get_question_list(self) -> List[QuestionInfo]:
         return self.qlist
@@ -66,7 +67,7 @@ class AssignmentConfig:
             self.questions[v] = q
 
     def get_question(self, qid) -> QuestionInfo:
-        return dict.get(qid)
+        return self.questions.get(qid)
 
 
 class StudentCSV():
