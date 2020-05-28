@@ -1,7 +1,7 @@
 
 import pandas as pd
 import plgspl.questions as qs
-from fpdf import FPDF
+from plgspl.pdf import PDF
 import os
 import json
 
@@ -48,6 +48,7 @@ def to_pdf(out_file, info_json, manual_csv, file_dir=None):
             for fn in os.listdir(file_dir):
                 if fn.find(f'{uid}_{qid}_{sid}'):
                     fns.append(os.path.join(file_dir, fn))
+                    q.add_file(fn)
             if len(fns):
                 q.expect_files = True
             file_bundle = qs.StudentFileBundle(fns)
@@ -55,11 +56,11 @@ def to_pdf(out_file, info_json, manual_csv, file_dir=None):
             qs.StudentQuestion(q, csv, file_bundle, qid, int(m[3])))
     print(f'Created {len(submissions)} submission(s)..')
 
-    pdf = FPDF()
+    pdf = PDF()
     for k, v in submissions.items():
         v.render_submission(pdf, config)
     pdf.output(os.path.join(os.getcwd(), f'{out_file}_submissions.pdf'))
 
-    sample_pdf = FPDF()
+    sample_pdf = PDF()
     qs.Submission('SAMPLE').render_submission(pdf, config)
     pdf.output(os.path.join(os.getcwd(), f'{out_file}_sample.pdf'))
