@@ -1,15 +1,21 @@
 {
   "maxPages": {
-    "description": "maximum pages to devote to a given file/answer type",
+    "description": "maximum pages to devote to a given file/answer part/type, including question ctx",
     "file": 2,
-    "shortAnswer": 1
+    "string": 1,
+    "default": 1
   },
   "page": {
     "description": "page sizes in mm",
-    "width": 180
+    "lineWidth": 180,
+    "lineHeight": 0,
+    "size": "a4",
+    "orientation": "p"
   },
   "font": {
-    "description": "Font configurations for different types of file text",
+    "description": {
+      "font": "one of arial, courier, times, or symbol"
+    },
     "title": {
       "description": "student uid & cover page styles",
       "size": 48,
@@ -17,38 +23,39 @@
     },
     "header": {
       "description": "question titles",
-      "size": 0,
-      "font": "arial"
+      "size": 12,
+      "font": "arial",
+      "line": {
+        "r": 255,
+        "g": 0,
+        "b": 0
+      }
     },
     "subheader": {
       "description": "question subheaders/parts",
       "size": 11,
-      "font": "arial"
+      "font": "arial",
+      "line": {
+        "r": 255,
+        "g": 0,
+        "b": 0
+      }
     },
     "body": {
       "description": "file body text",
-      "size": 11,
+      "size": 10,
       "font": "arial"
     },
     "code": {
-      "extension": ["cpp", "h", "txt"],
-      "font": "",
-      "size": 11,
-      "indent": 5
+      "ext": ["cpp", "h"],
+      "font": "arial",
+      "size": 10
     }
   },
   "correctnessBox": {
-    "correct": {
-      "color": "green"
-    },
-    "incomplete": {
-      "color": "blue"
-    },
-    "partial": {
-      "color": "yellow"
-    },
-    "incorrect": {
-      "color": "red"
-    }
+    "correct": "green",
+    "incomplete": "blue",
+    "partial": "yellow",
+    "incorrect": "red"
   }
 }
