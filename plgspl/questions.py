@@ -6,6 +6,7 @@ import os
 
 cfg = json.load(os.path.join(os.path.dirname(__file__), 'defaults.json'))
 lineWidth = cfg['page', 'lineWidth']
+lineHeight = cfg['page', 'lineHeight']
 
 
 def pad(pdf):
@@ -21,7 +22,7 @@ def pad_until(pdf: PDF, page_number, info=''):
         pad(pdf)
 
 
-def draw_line(pdf: PDF, width, color=cfg['font', 'header', 'line']):
+def draw_line(pdf: PDF, width=lineWidth, color=cfg['font', 'header', 'line']):
     pdf.set_line_width(0.5)
     pdf.set_draw_color(color['r'], color['b'], color['g'])
     pdf.line(10, pdf.get_y(), 12 + width, pdf.get_y())
@@ -115,10 +116,12 @@ class StudentFileBundle():
         file = self.files[file]
         return file and file["rendered"]
 
-    # Renders a file to a pdf.
-    # Pads out the pages with blank pages if the file does not exist & has not been rendered.
-    # else, does nothing
     def render_file(self, pdf: PDF, filename):
+        '''
+            Renders a file to a pdf.
+            Pads out the pages with blank pages if the file does not exist & has not been rendered.
+            else, does nothing
+        '''
         start = pdf.page_no()
         if self.was_rendered(filename):
             return
@@ -135,7 +138,7 @@ class StudentFileBundle():
             pdf.set_font(font['font'], size=font['size'])
 
             for line in open(file, 'r'):
-                pdf.multi_cell(lineWidth, cfg['page', 'lineHeight'], txt=line)
+                pdf.multi_cell(lineWidth, lineHeight, txt=line)
 
         pad_until(pdf, start + cfg['maxPages', 'file'],
                   f'padding for file {filename}')
@@ -153,20 +156,17 @@ class QuestionPart():
         self.key = key
         self.max_pages = cfg['maxPages', 'default']
 
-    def render_ctx(self, pdf: PDF) -> int:
+    def render_ctx(self, pdf: PDF):
         '''
             renders any question context to the pdf.
-            returns the length of the string rendered.
-            renders the string "No context provided." if not implemented in base class
+            renders the string "No context provided." if not overloaded
         '''
-        txt = "No context provided."
-        pdf.cell(lineWidth, txt=txt)
-        return len(txt)
+        pdf.cell(lineWidth, txt="No context provided.")
 
     def render_ans(self, pdf: PDF):
         '''
             renders the answer content to the pdf.
-            renders the string "no answer provided" if not implemented in base class.
+            renders the string "no answer provided" if not overloaded
         '''
         pdf.cell(lineWidth, txt="No answer provided.")
 
@@ -176,16 +176,17 @@ class QuestionPart():
             1. creates a new page
             2. renders the question ctx, if any
             3. adds the gs grading anchor
-            child classes should implement any 
+            4. renders the given answer, if any
+            5. pads until we've reached the max pages for the question.
         """
         pdf.add_page()
+        start = pdf.page_no()
         render_part_header(
             pdf, f'Question {self.question_number}.{self.part}: {self.key}')
+        draw_line(pdf)
+        render_gs_anchor(pdf, self.key, score)
         pdf.set_font(cfg['font', 'body', 'font'],
                      size=cfg['font', 'body', 'font'])
-        draw_line(pdf, self.render_ctx(pdf))
-        render_gs_anchor(pdf, self.key, score)
-        start = pdf.page_no()
         self.render_ans(pdf)
         pad_until(pdf, start + self.max_pages,
                   f'padding for question {self.question_number}.{self.part}')
@@ -195,7 +196,7 @@ class FileQuestionPart(QuestionPart):
     def __init__(self, question_number: int, part: int, key, ctx='', true_ans='', files=[], file_bundle=None):
         super().__init__(question_number, part, key, ctx, true_ans)
         self.files = files
-        self.max_pages = cfg["maxPages", "file"]
+        self.max_pages = cfg["maxPages", "file"] * len(files)
 
     def render_ans(self, pdf):
         if self.file_bundle:
@@ -211,9 +212,19 @@ class StringQuestionPart(QuestionPart):
         self.true_ans = true_ans
         self.max_pages = cfg['maxPages', 'string']
 
+    def render_ctx(self, pdf: PDF):
+        if isinstance(self.ctx, str):
+            if self.ctx == "":
+                super().render_ctx(pdf)
+            else:
+                pdf.multi_cell(lineWidth, lineHeight, txt=self.ctx)
+        else:
+            pdf.multi_cell(lineWidth, lineHeight, txt=json.dumps(self.ctx))
+        draw_line(pdf)
+        pdf.multi_cell(lineWidth, lineHeight, txt=f'Expected: {self.true_ans}')
+
     def render_ans(self, pdf: PDF):
-        # TODO: make this better :)
-        pdf.multi_cell(lineWidth, cfg['page', 'lineHeight'], self.ans)
+        pdf.multi_cell(lineWidth, lineHeight, self.ans)
 
 
 class MCQuestionPart(QuestionPart):
@@ -223,18 +234,19 @@ class MCQuestionPart(QuestionPart):
         self.ctx = ctx
         self.true_ans = true_ans
 
-    def render_mc(self, pdf: PDF, mc) -> int:
+    def render_mc(self, pdf: PDF, mc):
         for a in mc:
             if a["html"]:
-                txt = f'<span>{a["key"]}:{a["html"]}</span>'
-                pdf.write_html(txt)
+                pdf.write_html(f'<span>{a["key"]}:{a["html"]}</span>')
             else:
-                txt = f'{a["key"]}: {a["val"]}'
-                pdf.multi_cell(lineWidth, cfg['page', 'lineHeight'], txt)
-        return len(txt)
+                pdf.multi_cell(lineWidth, lineHeight,
+                               f'{a["key"]}: {a["val"]}')
 
     def render_ctx(self, pdf):
-        return render_mc(self, pdf, self.ctx) + render_mc(self, pdf, self.true_ans)
+        render_mc(self, pdf, self.ctx)
+        draw_line(pdf)
+        render_part_header(pdf, "Expected Answer(s)")
+        render_mc(self, pdf, self.true_ans)
 
     def render_ans(self, pdf):
         self.render_mc(pdf, self.ans)
@@ -258,23 +270,29 @@ class StudentQuestion:
             if isinstance(v, list):
                 k: str
                 # this handles mc questions. other list type questions are up in the air.
-                # some pl results have list types attached to the answer, but they also have
+                # some pl string have list types attached to the answer, but they also have
                 #   the list map to raw key value parts in the parent object.
                 if v[0] and v[0]['key']:
                     res = params[k]
                     if k.index('ans') > -1:
                         if k == 'ans':
-                            res = params['res']
+                            p_ctx = params['res']
                         else:
-                            res = params[f'res{k.split("ans").pop()}']
+                            p_ctx = params[f'res{k.split("ans").pop()}']
                     parts[k] = MCQuestionPart(q.number, len(
-                        parts), k, params[k], v, student_answer[k])
-            elif student_answer[k]:
-
-                # TODO: handle case where it's a 1-to-1 for answer
-                return None
+                        parts), k, p_ctx, v, student_answer[k])
+                continue
+            elif v["_type"] == "sympy":
+                # TODO: handle symbolic questions (doesn't look like there's an easy mapping...)
+                print('Skipping unsupported symbolic question part',
+                      k, json.dumps(v))
+                continue
+            elif isinstance(student_answer[k], str):
+                p_ctx = params[k] or params
+                parts[k] = StringQuestionPart(q.number, len(
+                    parts), k, p_ctx, v, student_answer[k])
             else:
-                # TODO: handle the case where there isn't a one-to-one mapping
+                print("Skipping unsupported question part", k, json.dumps(v))
                 return None
 
         if params['_required_file_names']:
@@ -322,8 +340,3 @@ class Submission:
                 if sq != None:
                     count -= 1
                     sq.render(pdf)
-            while count != 0:
-                qMap.get(q.qid).render(pdf)
-                render_gs_anchor(pdf, q.qid, -1)
-                # TODO: pad with empty pages
-                count -= 1
