@@ -11,7 +11,7 @@ lineHeight = cfg['page', 'lineHeight']
 
 def pad(pdf):
     pdf.add_page()
-    pdf.cell(lineWidth,  txt="This is a blank page.")
+    pdf.cell(lineWidth, txt="This is a blank page.")
 
 
 def pad_until(pdf: PDF, page_number, info=''):
@@ -40,8 +40,15 @@ def render_part_header(pdf: PDF, txt):
 
 
 def render_gs_anchor(pdf: PDF, variant, score=0):
-    if score == -1:
-        # TODO: no answer, so do that
+    '''
+        Renders the gs anchor box for a given question/question part.
+        -1:     Empty box. Intended for template variants.
+         0:     Completely incorrect answer.
+        < 100:  Partially correct answer.
+        100:    Completely correct answer.
+    '''
+    if score == -2:
+        # TODO: blank template box anchor
         return None
     elif score == 0:
         # TODO: render incorrect box
@@ -170,7 +177,7 @@ class QuestionPart():
         '''
         pdf.cell(lineWidth, txt="No answer provided.")
 
-    def render(self, pdf: PDF, score=0):
+    def render(self, pdf: PDF, score=0, as_template=False):
         """
             render a question part onto the pdf.
             1. creates a new page
@@ -178,16 +185,19 @@ class QuestionPart():
             3. adds the gs grading anchor
             4. renders the given answer, if any
             5. pads until we've reached the max pages for the question.
+
+            if as_template is true, will not render answer, and anchor will be empty.
         """
         pdf.add_page()
         start = pdf.page_no()
         render_part_header(
             pdf, f'Question {self.question_number}.{self.part}: {self.key}')
         draw_line(pdf)
-        render_gs_anchor(pdf, self.key, score)
+        render_gs_anchor(pdf, self.key, -1 if as_template else score)
         pdf.set_font(cfg['font', 'body', 'font'],
                      size=cfg['font', 'body', 'font'])
-        self.render_ans(pdf)
+        if not as_template:
+            self.render_ans(pdf)
         pad_until(pdf, start + self.max_pages,
                   f'padding for question {self.question_number}.{self.part}')
 
