@@ -1,4 +1,5 @@
 {
+  "configFiles": [],
   "maxPages": {
     "description": "maximum pages to devote to a given file/answer part/type, including question ctx",
     "file": 2,
@@ -52,10 +53,40 @@
       "size": 10
     }
   },
-  "correctnessBox": {
-    "correct": "green",
-    "incomplete": "blue",
-    "partial": "yellow",
-    "incorrect": "red"
+  "gsAnchor": {
+    "description": "configuration values for the gradescope anchor and variants",
+    "height": 20,
+    "correct": {
+      "text": "CORRECT",
+      "color": {
+        "r": 229,
+        "g": 255,
+        "b": 0
+      }
+    },
+    "blank": {
+      "text": "",
+      "color": {
+        "r": 224,
+        "g": 255,
+        "b": 255
+      }
+    },
+    "partial": {
+      "text": "PARTIAL",
+      "color": {
+        "r": 255,
+        "g": 250,
+        "b": 205
+      }
+    },
+    "incorrect": {
+      "text": "INCORRECT",
+      "color": {
+        "r": 255,
+        "g": 204,
+        "b": 204
+      }
+    }
   }
 }
