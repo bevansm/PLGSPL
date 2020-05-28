@@ -7,7 +7,7 @@ import os
 def get_max_pages():
     try:
         return int(os.environ.get("MAX_PAGES"))
-    except ValueError:
+    except:
         return 2
 
 
@@ -34,7 +34,7 @@ class QuestionInfo:
                  number_choose: int = 1,
                  max_pages: int = get_max_pages()):
         self.qid = qid
-        self.title = title
+        self.number = number
         self.expect_files = expect_files
         self.number_choose = number_choose
         self.max_pages = max_pages
@@ -96,21 +96,26 @@ class StudentCSV():
 
 
 class StudentFileBundle():
+    def parse_filename(self, filename):
+        # TODO: parse off filename
+        return filename
+
     def __init__(self, files: List[str] = []):
-        self.files = files
+        self.files = dict()
+        for file in files:
+            self.files[self.parse_filename(file)] = file
 
     def add_file(self, file):
-        self.files.append(file)
+        self.files[self.parse_filename(file)] = file
 
-    def render_filename(self, pdf: FPDF, file):
+    def render_file(self, pdf: FPDF, filename):
         # TODO: write the name of the file to the pdf like a part header
+        # TODO: remove file from bundle once done
         return None
 
-    def render(self, pdf: FPDF):
-        super().render(pdf)
+    def render_all(self, pdf: FPDF):
         for f in self.files:
-            render_filename(pdf, f)
-        # TODO: render all of the files.
+            render_file(pdf, f)
 
 
 class StudentQuestion:
@@ -131,7 +136,7 @@ class StudentQuestion:
 
 
 class Submission:
-    def __init__(self, uid: string):
+    def __init__(self, uid: str):
         self.uid = uid
         self.questions = dict()
 

@@ -4,25 +4,25 @@ import plgspl.questions as qs
 from fpdf import FPDF
 import os
 import json
-import typing
 
 
 def to_pdf(out_file, info_json, manual_csv, file_dir=None):
-    submissions = typing.Dict[str, qs.Submission]()
+    submissions = dict()
     config = qs.AssignmentConfig()
 
     # load the raw assignment config file
-    raw_questions = json.load(open(info_json))['zones']['questions']
-    for i, qi in enumerate(raw_questions):
-        q = None
-        if 'id' not in qi:
-            vs = qi['alternatives']
-            q = qs.QuestionInfo(vs[0], i, vs, False, qi['numberChoose'])
-        else:
-            q = qs.QuestionInfo(qi['id'], i)
-        config.add_question(q)
-    print(
-        f'Parsed config... Created {config.get_question_count()} questions and {config.get_variant_count()} variants...')
+    zones = json.load(open(info_json))['zones']
+    for z in zones:
+        for i, raw_q in enumerate(z['questions']):
+            q = None
+            if 'id' not in raw_q:
+                vs = raw_q['alternatives']
+                q = qs.QuestionInfo(vs[0], i, vs, False, raw_q['numberChoose'])
+            else:
+                q = qs.QuestionInfo(raw_q['id'], i)
+            config.add_question(q)
+        print(
+            f'Parsed config... Created {config.get_question_count()} questions and {config.get_variant_count()} variants...')
 
     # iterate over the rows of the csv and parse the data
     manual = pd.concat(pd.read_csv(manual_csv))
@@ -51,11 +51,12 @@ def to_pdf(out_file, info_json, manual_csv, file_dir=None):
             sq = qs.StudentQuestion(q, csv, file_bundle,
                                     qid, int(m['old_score']))
 
-    pdf = FPDF()
-    for k, v in submissions:
-        v.render_submission(pdf, config)
-    pdf.output(os.path.join(os.getcwd(), f'{out_file}_submissions.pdf'))
+    json.dump(submissions, 'tst.json')
+    # pdf = FPDF()
+    # for k, v in submissions:
+    #     v.render_submission(pdf, config)
+    # pdf.output(os.path.join(os.getcwd(), f'{out_file}_submissions.pdf'))
 
-    sample_pdf = FPDF()
-    qs.Submission('SAMPLE').render_submission(pdf, config)
-    pdf.output(os.path.join(os.getcwd(), f'{out_file}_sample.pdf'))
+    # sample_pdf = FPDF()
+    # qs.Submission('SAMPLE').render_submission(pdf, config)
+    # pdf.output(os.path.join(os.getcwd(), f'{out_file}_sample.pdf'))
