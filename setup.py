@@ -9,4 +9,6 @@ setup(
         'console_scripts': [
             'plgspl = plgspl.plgspl:main'
         ]
-    })
+    },
+    package_data={'plgspl': ['defaults.json']},
+    include_package_data=True)

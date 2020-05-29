@@ -18,7 +18,8 @@ def to_pdf(out_file, info_json, manual_csv, file_dir=None):
             q = None
             if 'id' not in raw_q:
                 vs = list(map(lambda q: q['id'], raw_q['alternatives']))
-                q = qs.QuestionInfo(vs[0], i, vs, False, raw_q['numberChoose'])
+                q = qs.QuestionInfo(
+                    vs[0], i, vs, number_choose=raw_q['numberChoose'])
             else:
                 q = qs.QuestionInfo(raw_q['id'], i)
             config.add_question(q)
@@ -39,9 +40,6 @@ def to_pdf(out_file, info_json, manual_csv, file_dir=None):
             submissions[uid] = submission
         q = config.get_question(qid)
 
-        csv = qs.StudentCSV(m['params'], m['true_answer'],
-                            m['submitted_answer'])
-
         # look for any files related to this question submission
         if file_dir:
             fns = []
@@ -49,11 +47,12 @@ def to_pdf(out_file, info_json, manual_csv, file_dir=None):
                 if fn.find(f'{uid}_{qid}_{sid}'):
                     fns.append(os.path.join(file_dir, fn))
                     q.add_file(fn)
-            if len(fns):
-                q.expect_files = True
-            file_bundle = qs.StudentFileBundle(fns)
+            file_bundle = qs.StudentFileBundle(fns, qid)
+
         submission.add_student_question(
-            qs.StudentQuestion(q, csv, file_bundle, qid, int(m[3])))
+            qs.StudentQuestion(q,
+                               m['params'], m['true_answer'], m['submitted_answer'],
+                               file_bundle, qid, int(m[3])))
     print(f'Created {len(submissions)} submission(s)..')
 
     pdf = PDF()
@@ -62,5 +61,5 @@ def to_pdf(out_file, info_json, manual_csv, file_dir=None):
     pdf.output(os.path.join(os.getcwd(), f'{out_file}_submissions.pdf'))
 
     sample_pdf = PDF()
-    qs.Submission('SAMPLE').render_submission(pdf, config)
+    qs.Submission('SAMPLE').render_submission(pdf, config, True)
     pdf.output(os.path.join(os.getcwd(), f'{out_file}_sample.pdf'))
