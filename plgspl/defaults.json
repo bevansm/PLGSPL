@@ -9,7 +9,7 @@
   "page": {
     "description": "page sizes in mm",
     "lineWidth": 180,
-    "lineHeight": 0,
+    "lineHeight": 12,
     "size": "a4",
     "orientation": "p"
   },
@@ -58,7 +58,7 @@
     "height": 20,
     "correct": {
       "text": "CORRECT",
-      "color": {
+      "fill": {
         "r": 229,
         "g": 255,
         "b": 0
@@ -66,7 +66,7 @@
     },
     "blank": {
       "text": "",
-      "color": {
+      "fill": {
         "r": 224,
         "g": 255,
         "b": 255
@@ -74,7 +74,7 @@
     },
     "partial": {
       "text": "PARTIAL",
-      "color": {
+      "fill": {
         "r": 255,
         "g": 250,
         "b": 205
@@ -82,7 +82,7 @@
     },
     "incorrect": {
       "text": "INCORRECT",
-      "color": {
+      "fill": {
         "r": 255,
         "g": 204,
         "b": 204
