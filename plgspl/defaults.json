@@ -1,0 +1,92 @@
+{
+  "configFiles": [],
+  "maxPages": {
+    "description": "maximum pages to devote to a given file/answer part/type, including question ctx",
+    "file": 2,
+    "string": 1,
+    "default": 1
+  },
+  "page": {
+    "description": "page sizes in mm",
+    "lineWidth": 180,
+    "lineHeight": 0,
+    "size": "a4",
+    "orientation": "p"
+  },
+  "font": {
+    "description": {
+      "font": "one of arial, courier, times, or symbol"
+    },
+    "title": {
+      "description": "student uid & cover page styles",
+      "size": 48,
+      "font": "courier"
+    },
+    "header": {
+      "description": "question titles",
+      "size": 12,
+      "font": "arial",
+      "line": {
+        "r": 255,
+        "g": 0,
+        "b": 0
+      }
+    },
+    "subheader": {
+      "description": "question subheaders/parts",
+      "size": 11,
+      "font": "arial",
+      "line": {
+        "r": 255,
+        "g": 0,
+        "b": 0
+      }
+    },
+    "body": {
+      "description": "file body text",
+      "size": 10,
+      "font": "arial"
+    },
+    "code": {
+      "ext": ["cpp", "h"],
+      "font": "arial",
+      "size": 10
+    }
+  },
+  "gsAnchor": {
+    "description": "configuration values for the gradescope anchor and variants",
+    "height": 20,
+    "correct": {
+      "text": "CORRECT",
+      "color": {
+        "r": 229,
+        "g": 255,
+        "b": 0
+      }
+    },
+    "blank": {
+      "text": "",
+      "color": {
+        "r": 224,
+        "g": 255,
+        "b": 255
+      }
+    },
+    "partial": {
+      "text": "PARTIAL",
+      "color": {
+        "r": 255,
+        "g": 250,
+        "b": 205
+      }
+    },
+    "incorrect": {
+      "text": "INCORRECT",
+      "color": {
+        "r": 255,
+        "g": 204,
+        "b": 204
+      }
+    }
+  }
+}

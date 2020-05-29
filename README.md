@@ -13,13 +13,13 @@ A Python tool to convert PrarieLearn CSV results and files into a single PDF for
 
 - pl element support:
   - [ ] `pl-string-input`
-  - [ ] `pl-file-editor`
-  - [ ] `pl-file-upload`
+  - [ ] `pl-file-editor`, `pl-file-upload`
   - [ ] `pl-symbolic-input`
 - cli:
-  - [ ] `classlist`
-  - [ ] `pdf`
-  - [ ] `merge`
+  - [ ] `classlist`: map pl to gs classlist
+  - [ ] `pdf`: produce a pdf from pl data
+  - [ ] `merge`: merge gs results with a pl manual grading csv for final grades
+  - [ ] `config`: reset & set custom json files to override defaults
 
 ## Context
 
@@ -31,13 +31,13 @@ We are basing our assignment layout upon [paul's sample pdf output](ctx/h5j7k.pd
 
 ### Assumptions
 
-- All variants of a given question have the same type.
+- All variants of a given question have the same type, length, and structure.
+- A given question variant is only used in one question (the config uses the `numberChoose` instead)
 - We are given the `infoAssessment.json` file from the assignment configuration.
   - We will use the `zones` field to build the outline for the assignment, including question alternatives.
 - Student "fill in the blank" questions should not take more than two pages.
   - We should configure this through an enviroment variable.
-- We can find the number of pages of a given pdf upload from the pdf metadata.
-  - We will use this to build the template gs question.
+- All scores in the manual grading csv are displayed as percentages out of 100
 
 ### Layout Requirements
 
@@ -54,12 +54,12 @@ We are basing our assignment layout upon [paul's sample pdf output](ctx/h5j7k.pd
 
 To take advantage of gradescope's autogrouping AI, we append a "correctness box" onto different questions.
 
-<QUID> refers to the question variant.
+`QUID` refers to the question variant.
 
-- A green box with the phrase "CORRECT <QUID>" corresponds to a correct answer.
-- A light blue box with the phrase "NO ANSWER <QUID>" corresponds to no given answer.
-- A yellow box with with the phrase "PARTIAL <QUID>" corresponds to a partial credit answer.
-- A red box with the phrase "INCORRECT <QUID>" corresponds to an incorrect answer.
+- A green box with the phrase "CORRECT `QUID`" corresponds to a correct answer.
+- A light blue box with the phrase "NO ANSWER `QUID`" corresponds to no given answer.
+- A yellow box with with the phrase "PARTIAL `QUID`" corresponds to a partial credit answer.
+- A red box with the phrase "INCORRECT `QUID`" corresponds to an incorrect answer.
   We intend for this box to be used as the question matching anchor.
 
 ## PDF Generation Workflow
@@ -69,16 +69,15 @@ To take advantage of gradescope's autogrouping AI, we append a "correctness box"
    2. pull out the questions list
    3. build an assignment outline out of the questions list.
       - set the max file size of each question to the env/cli var
-   4. check the files directory to see if the questions have corresponding files.
-      - [is there a way to do this cleanly](https://stackoverflow.com/questions/845058/how-to-get-line-count-of-a-large-file-cheaply-in-python)?
-      - if so, update max_file_size for that question.
+      - add this to some sort of config so we might be able to smartly update down the line
 2. for each student in the csv:
 
    1. If they're the first student, prepare the template gs file.
    2. put together the questions in the order provided. if we cannot find the quid in the csv, we assume that it's a file upload and look for the file in the zip folder.
+      - add the question number & title w/main variant
       - parse the "params" object from the manual grading pdf.
       - format the params & true_answer object to give the ta context.
-      - if it's already been graded by pl as correct (i.e. matched answer), add a "CORRECT" flag underneath the question context so we can use the gs ai to filter out these answers.
+      - add correctness box
       - add submitted_answer
       - add the file if there's a provided file upload
 
@@ -88,7 +87,7 @@ To take advantage of gradescope's autogrouping AI, we append a "correctness box"
 ## Commands
 
 - `plgspl classlist <CSV>`: Creates a GS classlist from the given PL CSV classlist to autogenerate a "ghost" pl class for grading.
-- `plgspl pdf <assignment_name> <SCORE_CSV> <MANUAL_CSV> <FILE_DIR> <INFO_JSON>`: Creates a template gs file for the given assignment.
+- `plgspl pdf <assignment_name> <INFO_JSON> <MANUAL_CSV> <FILE_DIR>`: Creates a template gs file for the given assignment.
   - `SCORE_CSV` should be a `best_submissions` or `final_submissions` pl file. We use this for 'correctness indicators' on gs to build a wholelistic assignment.
   - `MANUAL_CSV` should be a `**_submissions_for_manual_grading.csv` pl file.
   - `FILE_DIR` should be an unzipped file directory that corresponds to `**_files_for_manual_grading.zip` for `MANUAL_CSV`
@@ -108,3 +107,5 @@ To take advantage of gradescope's autogrouping AI, we append a "correctness box"
 - Support GS batch uploads (or is the one pdf good enough?)
 - What other elements?
 - Can we automate this so we can add a pl endpoint and grab the pdfs from a s3 bucket somewhere?
+- [is there a way to check the max file upload size for a question cleanly?](https://stackoverflow.com/questions/845058/how-to-get-line-count-of-a-large-file-cheaply-in-python)?
+  - if so, update max_file_size for that question
