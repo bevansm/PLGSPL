@@ -12,7 +12,7 @@ A Python tool to convert PrarieLearn CSV results and files into a single PDF for
 ## Roadmap
 
 - pl element support:
-  - [ ] `pl-string-input`
+  - [ x ] `pl-string-input`
   - [ ] `pl-file-editor`, `pl-file-upload`
   - [ ] `pl-symbolic-input`
 - cli:
@@ -102,10 +102,16 @@ To take advantage of gradescope's autogrouping AI, we append a "correctness box"
 - [res](res): Scrubbed Sample Data (taken from 2020S1 MT2)
 - [ctx](ctx): Paul's files
 
-## Future Questions
+## Scratch
+
+### Future
 
 - Support GS batch uploads (or is the one pdf good enough?)
 - What other elements?
 - Can we automate this so we can add a pl endpoint and grab the pdfs from a s3 bucket somewhere?
 - [is there a way to check the max file upload size for a question cleanly?](https://stackoverflow.com/questions/845058/how-to-get-line-count-of-a-large-file-cheaply-in-python)?
   - if so, update max_file_size for that question
+
+### Notes & Useful Scripts
+
+Run sample pdf generation: `plgspl pdf tst config.json ans.csv files`
