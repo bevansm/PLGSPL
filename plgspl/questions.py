@@ -4,6 +4,7 @@ from functools import reduce
 from typing import List, Dict
 import json
 import os
+import collections
 
 
 def get(dictionary, *keys, default=None, cast=lambda x: x):
@@ -67,18 +68,24 @@ def render_gs_anchor(pdf: PDF, variant, score=0):
         < 100:  Partially correct answer.
         100:    Completely correct answer.
     '''
-    if score == -2:
-        # TODO: blank template box anchor
-        return None
+    if score == -1:
+        a_cfg = get(cfg, 'gsAnchor', 'blank')
     elif score == 0:
-        # TODO: render incorrect box
-        return None
+        a_cfg = get(cfg, 'gsAnchor', 'incorrect')
     elif score < 100:
-        # TODO: render partial box
-        return None
+        a_cfg = get(cfg, 'gsAnchor', 'partial')
     elif score == 100:
-        # TODO: render correct box
-        return None
+        a_cfg = get(cfg, 'gsAnchor', 'correct')
+    else:
+        return
+    fill = get(a_cfg, 'fill', default={'r': 0, 'g': 0, 'b': 0})
+    pdf.set_font(cfg['font']['body']['font'])
+    pdf.set_fill_color(fill['r'], fill['g'], fill['b'])
+    pdf.cell(lineWidth,
+             h=get(cfg, 'gsAnchor', 'height'),
+             txt=a_cfg["text"],
+             fill=True)
+    pdf.ln()
 
 
 def parse_filename(raw: str, qid):
@@ -125,7 +132,7 @@ class AssignmentConfig:
             self.questions[v] = q
 
     def get_question(self, qid) -> QuestionInfo:
-        return self.questions.get(qid, {})
+        return self.questions.get(qid, None)
 
 
 class StudentFileBundle():
@@ -167,7 +174,7 @@ class StudentFileBundle():
             for line in open(file["path"], 'r'):
                 pdf.multi_cell(lineWidth, lineHeight, txt=line)
 
-        pad_until(pdf, start + get(cfg, 'maxPages', 'file', cast=int, default=1),
+        pad_until(pdf, start + get(cfg, 'maxPages', 'file', cast=int, default=1) - 1,
                   f'padding for file {filename}')
 
     # dumps the remainder of the files in this bundle into the question.
@@ -223,9 +230,10 @@ class QuestionPart():
                      size=get(cfg, 'font', 'body', 'font', cast=int, default=10))
         self.render_ctx(pdf)
         draw_line(pdf)
+        render_gs_anchor(pdf, self.key, -1 if as_template else score)
+        draw_line(pdf)
         self.render_expected(pdf)
         draw_line(pdf)
-        render_gs_anchor(pdf, self.key, -1 if as_template else score)
         if not as_template:
             self.render_ans(pdf)
         pad_until(pdf, start + self.max_pages - 1,
@@ -242,7 +250,9 @@ class FileQuestionPart(QuestionPart):
 
     def render_ans(self, pdf: PDF):
         if self.file_bundle:
-            for f in self.files:
+            if len(self.files) > 0:
+                self.file_bundle.render_file(pdf, self.files[0])
+            for f in self.files[1:]:
                 pdf.add_page()
                 self.file_bundle.render_file(pdf, f)
 
@@ -323,6 +333,7 @@ class SymbolicQuestionPart(QuestionPart):
 
     def render_ans(self, pdf: PDF):
         pdf.cell(lineWidth, lineHeight, txt=f'{self.key}: {self.val}')
+        pdf.ln()
         pdf.cell(lineWidth, lineHeight, txt=f'Variables: {self.vars}')
 
 
@@ -339,24 +350,26 @@ class StudentQuestion:
         parts = []
         params = json.loads(raw_params)
         ans_key = json.loads(raw_ans_key)
-        student_answer = json.loads(raw_student_answer)
+        student_answer = collections.OrderedDict(
+            json.loads(raw_student_answer).items())
 
-        student_answer: dict()
+        student_answer: collections.OrderedDict()
         ans_key: dict()
         params: dict()
         while len(student_answer) > 0:
-            k, v = student_answer.popitem()
+            k, v = student_answer.popitem(False)
             k: str
-            if "file_editor" in k or "required_files" in k:
+            part_no = len(parts) + 1
+            if k.find("_file_editor") == 0 or k.find("_required_file_names") == 0:
                 continue
             elif (k.find('res') == 0
                   and isinstance(ans_key.get(k, False), list)
                     and isinstance(params.get(k, False), list)):
-                parts.append(MCQuestionPart(q.number, len(parts),
-                                            k, params.get(k, []), ans_key.get(k, []), v))
+                parts.append(MCQuestionPart(q.number, part_no, k,
+                                            params.get(k, []), ans_key.get(k, []), v))
             elif isinstance(v, dict) and v.get("_type", "") == "sympy":
-                parts.append(SymbolicQuestionPart(q.number, len(
-                    parts), k, v["_value"], v["_variables"]))
+                parts.append(SymbolicQuestionPart(q.number, part_no, k,
+                                                  v["_value"], v["_variables"]))
             elif k.find(".") > 0 and k.rsplit(".", 1).pop().isnumeric():
                 ans = []
                 arr_key = k.rsplit(".", 1)[0]
@@ -373,19 +386,17 @@ class StudentQuestion:
                 if v:
                     ans.append(v)
                 k = f'Array {arr_key}'
-                parts.append(ArrayQuestionPart(
-                    q.number, len(parts), k, ans=ans))
+                parts.append(ArrayQuestionPart(q.number, part_no, k, ans=ans))
             elif not isinstance(v, (dict, list)):
-                parts.append(StringQuestionPart(q.number, len(
-                    parts), k, params.get(k, params), ans_key.get(k, ""), v))
+                parts.append(StringQuestionPart(q.number, part_no, k,
+                                                params.get(k, params), ans_key.get(k, ""), v))
             else:
                 print("Skipping unsupported question part:", k, json.dumps(v))
 
         if params.get('_required_file_names', False):
             parts.append(FileQuestionPart(
-                q.number, len(parts), 'required_files', files=params['_required_file_names']))
+                q.number, len(parts) + 1, 'required_files', files=params['_required_file_names']))
 
-        parts.reverse()
         self.parts = parts
 
     def render(self, pdf: PDF, template=False):

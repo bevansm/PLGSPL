@@ -6,13 +6,15 @@ import os
 import json
 
 
-def to_pdf(out_file, info_json, manual_csv, file_dir=None):
+def to_pdf(info_json, manual_csv, file_dir=None):
     submissions = dict()
     config = qs.AssignmentConfig()
 
     # load the raw assignment config file
-    print(f'Loading config from {info_json}...')
-    zones = json.load(open(info_json))['zones']
+    cfg = json.load(open(info_json))
+    out_file = cfg.get("title", "assignment")
+    zones = cfg['zones']
+    print(f'Parsing config for {out_file}...')
     for z in zones:
         for i, raw_q in enumerate(z['questions']):
             q = None
@@ -21,7 +23,7 @@ def to_pdf(out_file, info_json, manual_csv, file_dir=None):
                 q = qs.QuestionInfo(
                     vs[0], i, variants=vs, number_choose=raw_q['numberChoose'])
             else:
-                q = qs.QuestionInfo(raw_q['id'], i)
+                q = qs.QuestionInfo(raw_q['id'], i + 1)
             config.add_question(q)
     print(
         f'Parsed config. Created {config.get_question_count()} questions and {config.get_variant_count()} variants.', end='\n\n')
@@ -39,6 +41,8 @@ def to_pdf(out_file, info_json, manual_csv, file_dir=None):
             submission = qs.Submission(uid)
             submissions[uid] = submission
         q = config.get_question(qid)
+        if not q:
+            continue
 
         # look for any files related to this question submission
         fns = []
