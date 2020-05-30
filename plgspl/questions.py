@@ -89,11 +89,11 @@ class QuestionInfo():
     def __init__(self, qid: str,
                  number: int,
                  variants: List[str] = None,
-                 expected_files=set(),
+                 expected_files=False,
                  number_choose: int = 1):
         self.qid = qid
         self.number = number
-        self.expected_files = expected_files
+        self.expected_files = expected_files or set()
         self.number_choose = number_choose
         self.variants = variants if variants else [qid]
 
@@ -125,7 +125,7 @@ class AssignmentConfig:
             self.questions[v] = q
 
     def get_question(self, qid) -> QuestionInfo:
-        return self.questions.get(qid)
+        return self.questions.get(qid, {})
 
 
 class StudentFileBundle():
@@ -160,7 +160,7 @@ class StudentFileBundle():
         if file and not file["rendered"]:
             file["rendered"] = True
             font = get(cfg, 'font', 'code')
-            if os.path.splitext(file["path"])[1] in str(font['ext']):
+            if not os.path.split((file["path"]))[1] in str(font['ext']):
                 font = get(cfg, 'font', 'body')
             pdf.set_font(font['font'], size=font['size'])
 
