@@ -5,6 +5,7 @@ __version__ = "0.0.0"
 
 import sys
 import os
+import json
 from plgspl.to_pdf import to_pdf
 from plgspl.classlist import classlist
 

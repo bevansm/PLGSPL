@@ -5,29 +5,14 @@ from typing import List, Dict
 import json
 import os
 import collections
+from plgspl.cfg import cfg, get_cfg
 
 
-def get(dictionary, *keys, default=None, cast=lambda x: x):
-    '''
-        get returns the nested field from a dict.
-        it will try to perform the given cast on the field value.
-        if the cast fails or the value dne, the default is returned
-    '''
-    v = reduce(lambda d, key: d.get(key, default) if isinstance(
-        d, dict) else default, keys, dictionary)
-    try:
-        return cast(v)
-    except:
-        return default
+lineWidth = get_cfg('page', 'lineWidth', default=180, cast=int)
+lineHeight = get_cfg('page', 'lineHeight', default=0, cast=int)
 
 
-cfg = json.load(
-    open(os.path.join(os.path.dirname(__file__), '__defaults.json')))
-lineWidth = get(cfg, 'page', 'lineWidth', default=180, cast=int)
-lineHeight = int(get(cfg, 'page', 'lineHeight', default=0, cast=int))
-
-
-def draw_line(pdf: PDF, width=lineWidth, color=get(cfg, 'font', 'header', 'line', default={"r": 0, "b": 0, "g": 0})):
+def draw_line(pdf: PDF, width=lineWidth, color=get_cfg('font', 'header', 'line', default={"r": 0, "b": 0, "g": 0})):
     pdf.ln(6)
     pdf.set_line_width(0.5)
     pdf.set_draw_color(color['r'], color['b'], color['g'])
@@ -51,14 +36,14 @@ def pad_until(pdf: PDF, page_number, info=''):
         pad(pdf)
 
 
-def render_header(pdf: PDF, txt, header_cfg=get(cfg, 'font', 'header')):
+def render_header(pdf: PDF, txt, header_cfg=get_cfg('font', 'header')):
     pdf.set_font(header_cfg['font'], size=header_cfg['size'])
     pdf.cell(lineWidth, txt=txt)
     draw_line(pdf, pdf.get_string_width(txt), header_cfg['line'])
 
 
 def render_part_header(pdf: PDF, txt):
-    render_header(pdf, txt, get(cfg, 'font', 'subheader'))
+    render_header(pdf, txt, get_cfg('font', 'subheader'))
 
 
 def render_gs_anchor(pdf: PDF, variant, score=0):
@@ -70,20 +55,20 @@ def render_gs_anchor(pdf: PDF, variant, score=0):
         100:    Completely correct answer.
     '''
     if score == -1:
-        a_cfg = get(cfg, 'gsAnchor', 'blank')
+        a_cfg = get_cfg('gsAnchor', 'blank')
     elif score == 0:
-        a_cfg = get(cfg, 'gsAnchor', 'incorrect')
+        a_cfg = get_cfg('gsAnchor', 'incorrect')
     elif score < 100:
-        a_cfg = get(cfg, 'gsAnchor', 'partial')
+        a_cfg = get_cfg('gsAnchor', 'partial')
     elif score == 100:
-        a_cfg = get(cfg, 'gsAnchor', 'correct')
+        a_cfg = get_cfg('gsAnchor', 'correct')
     else:
         return
-    fill = get(a_cfg, 'fill', default={'r': 0, 'g': 0, 'b': 0})
+    fill = a_cfg['fill']
     pdf.set_font(cfg['font']['body']['font'])
     pdf.set_fill_color(fill['r'], fill['g'], fill['b'])
     pdf.cell(lineWidth,
-             h=get(cfg, 'gsAnchor', 'height'),
+             h=get_cfg('gsAnchor', 'height'),
              txt=a_cfg["text"],
              fill=True)
     pdf.ln()
@@ -167,15 +152,15 @@ class StudentFileBundle():
             self.files[filename] = {"path": "", "rendered": True}
         if file and not file["rendered"]:
             file["rendered"] = True
-            font = get(cfg, 'font', 'code')
+            font = get_cfg('font', 'code')
             if not os.path.split((file["path"]))[1] in str(font['ext']):
-                font = get(cfg, 'font', 'body')
+                font = get_cfg('font', 'body')
             pdf.set_font(font['font'], size=font['size'])
 
             for line in open(file["path"], 'r'):
                 pdf.multi_cell(lineWidth, lineHeight, txt=line)
 
-        pad_until(pdf, start + get(cfg, 'maxPages', 'file', cast=int, default=1) - 1,
+        pad_until(pdf, start + get_cfg('maxPages', 'file', cast=int, default=1) - 1,
                   f'padding for file {filename}')
 
     # dumps the remainder of the files in this bundle into the question.
@@ -189,8 +174,7 @@ class QuestionPart():
         self.question_number = question_number
         self.part = part
         self.key = key
-        self.max_pages = get(
-            cfg, 'maxPages', 'default', cast=int, default=1)
+        self.max_pages = get_cfg('maxPages', 'default', cast=int, default=1)
 
     def render_ctx(self, pdf: PDF):
         '''
@@ -227,8 +211,8 @@ class QuestionPart():
         start = pdf.page_no()
         render_part_header(
             pdf, f'Question {self.question_number}.{self.part}: {self.key}')
-        pdf.set_font(get(cfg, 'font', 'body', 'font', default='arial'),
-                     size=get(cfg, 'font', 'body', 'font', cast=int, default=10))
+        pdf.set_font(get_cfg('font', 'body', 'font', default='arial'),
+                     size=get_cfg('font', 'body', 'font', cast=int, default=10))
         self.render_ctx(pdf)
         draw_line(pdf)
         render_gs_anchor(pdf, self.key, -1 if as_template else score)
@@ -246,8 +230,8 @@ class FileQuestionPart(QuestionPart):
         super().__init__(question_number, part, key)
         self.files = files
         self.file_bundle = file_bundle
-        self.max_pages = get(cfg, "maxPages", "file",
-                             cast=int, default=1) * len(files)
+        self.max_pages = get_cfg("maxPages", "file",
+                                 cast=int, default=1) * len(files)
 
     def render_ans(self, pdf: PDF):
         if self.file_bundle:
@@ -264,7 +248,7 @@ class StringQuestionPart(QuestionPart):
         self.ans = str(ans)
         self.ctx = ctx
         self.true_ans = str(true_ans)
-        self.max_pages = get(cfg, 'maxPages', 'string', cast=int, default=1)
+        self.max_pages = get_cfg('maxPages', 'string', cast=int, default=1)
 
     def render_ctx(self, pdf: PDF):
         if isinstance(self.ctx, str):
@@ -432,8 +416,8 @@ class Submission:
         return self.questions.get(variant)
 
     def render_front_page(self, pdf: PDF):
-        pdf.set_font(get(cfg, 'font', 'title', 'font', default="arial"),
-                     size=get(cfg, 'font', 'title', 'size', default=10, cast=int))
+        pdf.set_font(get_cfg('font', 'title', 'font', default="arial"),
+                     size=get_cfg('font', 'title', 'size', default=10, cast=int))
         pdf.cell(0, 60, ln=1)
         pdf.cell(0, 20, f'PL UID: {self.uid}', ln=1, align='C')
 
