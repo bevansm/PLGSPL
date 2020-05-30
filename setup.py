@@ -10,5 +10,5 @@ setup(
             'plgspl = plgspl.plgspl:main'
         ]
     },
-    package_data={'plgspl': ['defaults.json']},
+    package_data={'plgspl': ['__defaults.json']},
     include_package_data=True)

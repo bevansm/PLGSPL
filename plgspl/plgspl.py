@@ -6,6 +6,7 @@ __version__ = "0.0.0"
 import sys
 import os
 from plgspl.to_pdf import to_pdf
+from plgspl.classlist import classlist
 
 
 def append_cwd(s):
@@ -30,3 +31,9 @@ def main():
             print("Unable to find the given file directory: %s" % f)
             sys.exit(1)
         to_pdf(args[0], args[1], file_dir)
+    elif cmd == "classlist":
+        f = sys.argv[2]
+        if not os.path.isfile(f):
+            print("Unable to find the given file: %s" % f)
+            sys.exit(1)
+        classlist(f)
