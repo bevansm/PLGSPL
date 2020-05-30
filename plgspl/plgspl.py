@@ -17,8 +17,7 @@ def main():
     print("List of argument strings: %s" % sys.argv[1:])
     cmd = sys.argv[1]
     if cmd == 'pdf':
-        out_file = sys.argv[2]
-        args = list(map(append_cwd, sys.argv[3:]))
+        args = list(map(append_cwd, sys.argv[2:]))
         if len(args) < 2:
             print("Please provide all required files.")
             sys.exit(1)
@@ -30,4 +29,4 @@ def main():
         if file_dir and not os.path.isdir(file_dir):
             print("Unable to find the given file directory: %s" % f)
             sys.exit(1)
-        to_pdf(out_file, args[0], args[1], file_dir)
+        to_pdf(args[0], args[1], file_dir)
