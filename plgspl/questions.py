@@ -1,4 +1,4 @@
-from plgspl.pdf import PDF
+from plgspl.types import PDF
 from enum import Enum
 from functools import reduce
 from typing import List, Dict
@@ -21,7 +21,8 @@ def get(dictionary, *keys, default=None, cast=lambda x: x):
         return default
 
 
-cfg = json.load(open(os.path.join(os.path.dirname(__file__), 'defaults.json')))
+cfg = json.load(
+    open(os.path.join(os.path.dirname(__file__), '__defaults.json')))
 lineWidth = get(cfg, 'page', 'lineWidth', default=180, cast=int)
 lineHeight = int(get(cfg, 'page', 'lineHeight', default=0, cast=int))
 
