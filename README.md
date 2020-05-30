@@ -16,7 +16,10 @@ A Python tool to convert PrarieLearn CSV results and files into a single PDF for
   - [x] `pl-file-editor`, `pl-file-upload`
   - [ ] `pl-symbolic-input`
 - cli:
-  - [x] `classlist`: map pl to gs classlist
+  <<<<<<< HEAD
+  - [x] # `classlist`: map pl to gs classlist
+  - [ ] `classlist`: map pl to gs classlist
+    > > > > > > > 86f3d676d7a21d9e47f288232bf8513c21948a23
   - [x] `pdf`: produce a pdf from pl data
   - [ ] `merge`: merge gs results with a pl manual grading csv for final grades
   - [ ] `config`: reset & set custom json files to override defaults
