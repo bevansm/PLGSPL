@@ -4,6 +4,7 @@ import plgspl.questions as qs
 from plgspl.types import PDF
 import os
 import json
+from plgspl.cfg import cfg, get_cfg
 
 
 def to_pdf(info_json, manual_csv, file_dir=None):
@@ -58,10 +59,25 @@ def to_pdf(info_json, manual_csv, file_dir=None):
     print(f'Created {len(submissions)} submission(s)..')
 
     pdf = PDF()
-    for k, v in submissions.items():
-        v.render_submission(pdf, config)
-    pdf.output(os.path.join(os.getcwd(), f'{out_file}_submissions.pdf'))
 
-    sample_pdf = PDF()
-    qs.Submission('SAMPLE').render_submission(pdf, config, True)
-    pdf.output(os.path.join(os.getcwd(), f'{out_file}_sample.pdf'))
+    def pdf_output(pdf, name):
+        pdf.output(os.path.join(os.getcwd(), f'{out_file}_{name}.pdf'))
+
+    prev = 1
+    for i, (k, v) in enumerate(submissions.items()):
+        v: qs.Submission
+        v.render_submission(pdf, config)
+        if i == 0:
+            pdf_output(pdf, "sample")
+            max_submissions = get_cfg('gs', 'pagesPerPDF') / pdf.page_no()
+            if max_submissions < 1:
+                print('Cannot create submissions given the current max page constraint.')
+                print('Please adjust your defaults.')
+                exit(1)
+            max_submissions = int(max_submissions)
+        if i != 0 and i % max_submissions == 0:
+            pdf_output(pdf, f'{i - max_submissions + 1}-{i + 1}')
+            prev = i + 1
+            pdf = PDF()
+    if prev < len(submissions):
+        pdf_output(pdf, f'{prev}-{len(submissions)}')

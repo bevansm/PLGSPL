@@ -1,5 +1,8 @@
 {
   "configFiles": [],
+  "gs": {
+    "pagesPerPDF": 500
+  },
   "maxPages": {
     "description": "maximum pages to devote to a given file/answer part/type, including question ctx",
     "file": 1,
