@@ -16,7 +16,7 @@ A Python tool to convert PrarieLearn CSV results and files into a single PDF for
   - [x] `pl-file-editor`, `pl-file-upload`
   - [ ] `pl-symbolic-input`
 - cli:
-  - [ ] `classlist`: map pl to gs classlist
+  - [x] `classlist`: map pl to gs classlist
   - [x] `pdf`: produce a pdf from pl data
   - [ ] `merge`: merge gs results with a pl manual grading csv for final grades
   - [ ] `config`: reset & set custom json files to override defaults
@@ -54,6 +54,6 @@ Technical notes, requirements, assumptions, ect. may be found in [NOTES.md](NOTE
 - [is there a way to check the max file upload size for a question cleanly?](https://stackoverflow.com/questions/845058/how-to-get-line-count-of-a-large-file-cheaply-in-python)?
   - if so, update max_file_size for that question
 
-### Notes & Useful Scripts
+### Useful Scripts
 
-Run sample pdf generation: `plgspl pdf config.json ans.csv files`
+Run sample pdf && classlist generation: `plgspl classlist ans.csv && plgspl pdf config.json ans.csv files`

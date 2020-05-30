@@ -1,7 +1,7 @@
 
 import pandas as pd
 import plgspl.questions as qs
-from plgspl.pdf import PDF
+from plgspl.types import PDF
 import os
 import json
 
