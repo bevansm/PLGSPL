@@ -1,22 +1,6 @@
 # Technical Notes and Assumptions
 
-### The "Correctness Box"
-
-To take advantage of gradescope's autogrouping AI, we append a "correctness box" onto different questions.
-
-`QUID` refers to the question variant.
-
-- A green box with the phrase "CORRECT `QUID`" corresponds to a correct answer.
-- A light blue box with the phrase "NO ANSWER `QUID`" corresponds to no given answer.
-- A yellow box with with the phrase "PARTIAL `QUID`" corresponds to a partial credit answer.
-- A red box with the phrase "INCORRECT `QUID`" corresponds to an incorrect answer.
-  We intend for this box to be used as the question matching anchor.
-
-## Student Assignment Layout
-
-We are basing our assignment layout upon [paul's sample pdf output](ctx/h5j7k.pdf).
-
-### Assumptions
+## Assumptions
 
 - All variants of a given question have the same type, length, and structure.
 - A given question variant is only used in one question (the config uses the `numberChoose` instead)
@@ -25,6 +9,10 @@ We are basing our assignment layout upon [paul's sample pdf output](ctx/h5j7k.pd
 - Student "fill in the blank" questions should not take more than two pages.
   - We should configure this through an enviroment variable.
 - All scores in the manual grading csv are displayed as percentages out of 100
+
+## Student Assignment Layout
+
+We are basing our assignment layout upon [paul's sample pdf output](../ctx/h5j7k.pdf).
 
 ### Layout Requirements
 
@@ -36,6 +24,18 @@ We are basing our assignment layout upon [paul's sample pdf output](ctx/h5j7k.pd
   - A "correctness indicator" box, so we can use the gs AI to autogroup correct and incorrect questions.
   - The student answer below the above "correctness indicator", so we can actually grade!
 - A file upload question should be preceeded by a page just with the question title/context for the grader. The remaining pages should be appended after that.
+
+### The "Correctness Box"
+
+To take advantage of gradescope's autogrouping AI, we append a "correctness box" onto different questions.
+
+`QUID` refers to the question variant.
+
+- A green box with the phrase "CORRECT `QUID`" corresponds to a correct answer.
+- A light blue box with the phrase "NO ANSWER `QUID`" corresponds to no given answer.
+- A yellow box with with the phrase "PARTIAL `QUID`" corresponds to a partial credit answer.
+- A red box with the phrase "INCORRECT `QUID`" corresponds to an incorrect answer.
+  We intend for this box to be used as the question matching anchor.
 
 ## PDF Generation Workflow
 
