@@ -13,6 +13,10 @@ lineHeight = get_cfg('page', 'lineHeight', default=0, cast=int)
 
 
 def draw_line(pdf: PDF, width=lineWidth, color=get_cfg('font', 'header', 'line', default={"r": 0, "b": 0, "g": 0})):
+    '''
+        draws a line on the page.
+        by default, the line is the page width.
+    '''
     pdf.ln(6)
     pdf.set_line_width(0.5)
     pdf.set_draw_color(color['r'], color['b'], color['g'])
@@ -21,12 +25,18 @@ def draw_line(pdf: PDF, width=lineWidth, color=get_cfg('font', 'header', 'line',
 
 
 def pad(pdf):
+    '''
+        pads the pdf with a blank page.
+    '''
     pdf.add_page()
     draw_line(pdf)
     pdf.cell(lineWidth, txt="This is a blank page.")
 
 
 def pad_until(pdf: PDF, page_number, info=''):
+    '''
+        pads the pdf until the target page number.
+    '''
     if pdf.page_no() > page_number:
         print('Warning: A question exceeds expected length. Please re-adjust your configuration.', info)
         print('Dumping current pdf as incomplete_assignment.pdf')
@@ -37,12 +47,18 @@ def pad_until(pdf: PDF, page_number, info=''):
 
 
 def render_header(pdf: PDF, txt, header_cfg=get_cfg('font', 'header')):
+    '''
+        renders a question header with the given text.
+    '''
     pdf.set_font(header_cfg['font'], size=header_cfg['size'])
     pdf.cell(lineWidth, txt=txt)
     draw_line(pdf, pdf.get_string_width(txt), header_cfg['line'])
 
 
 def render_part_header(pdf: PDF, txt):
+    '''
+        renders a part header with the given text.
+    '''
     render_header(pdf, txt, get_cfg('font', 'subheader'))
 
 
@@ -75,14 +91,23 @@ def render_gs_anchor(pdf: PDF, variant, score=0):
 
 
 def parse_filename(raw: str, qid):
+    '''
+        parses a pl filename, assuming it belongs to a question
+        with the given question id.
+    '''
     return raw.rsplit(qid + "_", 1).pop().split("_", 1).pop()
 
 
 class QuestionInfo():
+    '''
+        encapsulates the general question information for a pl question
+        (i.e. qid, variants, number of variants to choose)
+    '''
+
     def __init__(self, qid: str,
                  number: int,
                  variants: List[str] = None,
-                 expected_files=False,
+                 expected_files: set = False,
                  number_choose: int = 1):
         self.qid = qid
         self.number = number
@@ -98,6 +123,10 @@ class QuestionInfo():
 
 
 class AssignmentConfig:
+    '''
+        manages a group of QuestionInfo objects that compose an assignment
+    '''
+
     def __init__(self):
         self.questions = dict()
         self.qlist = []
@@ -122,6 +151,11 @@ class AssignmentConfig:
 
 
 class StudentFileBundle():
+    '''
+        manages and provides utility functions for a "file bundle",
+        i.e. a set of absolute file paths for pl student file uploads
+    '''
+
     def __init__(self, files: List[str] = [], qid=""):
         self.files = dict()
         for file in files:
@@ -145,7 +179,6 @@ class StudentFileBundle():
         start = pdf.page_no()
         if self.was_rendered(filename):
             return
-
         file = self.files.get(filename, False)
         render_part_header(pdf, filename)
         if not file:
@@ -166,10 +199,14 @@ class StudentFileBundle():
     # dumps the remainder of the files in this bundle into the question.
     def render_all(self, pdf: PDF):
         for f in self.files:
-            render_file(pdf, f)
+            self.render_file(pdf, f)
 
 
 class QuestionPart():
+    '''
+        encapsulates a part of a question.
+    '''
+
     def __init__(self, question_number: int, part: int, key):
         self.question_number = question_number
         self.part = part
@@ -331,29 +368,27 @@ class StudentQuestion:
         self.file_bundle = file_bundle
         self.variant = variant if variant else q.qid
         self.score = score if not override_score else override_score
+        self.parts = self.get_question_parts(
+            json.loads(raw_params),
+            json.loads(raw_ans_key),
+            collections.OrderedDict(json.loads(raw_student_answer).items()))
 
+    def get_question_parts(self, params: dict(), ans_key: dict(), student_answer: collections.OrderedDict):
         parts = []
-        params = json.loads(raw_params)
-        ans_key = json.loads(raw_ans_key)
-        student_answer = collections.OrderedDict(
-            json.loads(raw_student_answer).items())
-
-        student_answer: collections.OrderedDict()
-        ans_key: dict()
-        params: dict()
+        q_no = self.question.number
         while len(student_answer) > 0:
             k, v = student_answer.popitem(False)
             k: str
             part_no = len(parts) + 1
-            if k.find("_file_editor") == 0 or k.find("_required_file_names") == 0:
+            if k.find("_file_editor") == 0:
                 continue
             elif (k.find('res') == 0
                   and isinstance(ans_key.get(k, False), list)
                     and isinstance(params.get(k, False), list)):
-                parts.append(MCQuestionPart(q.number, part_no, k,
+                parts.append(MCQuestionPart(q_no, part_no, k,
                                             params.get(k, []), ans_key.get(k, []), v))
             elif isinstance(v, dict) and v.get("_type", "") == "sympy":
-                parts.append(SymbolicQuestionPart(q.number, part_no, k,
+                parts.append(SymbolicQuestionPart(q_no, part_no, k,
                                                   v["_value"], v["_variables"]))
             elif k.find(".") > 0 and k.rsplit(".", 1).pop().isnumeric():
                 ans = []
@@ -370,19 +405,18 @@ class StudentQuestion:
                     ans.append(nxt)
                 if v:
                     ans.append(v)
-                k = f'Array {arr_key}'
-                parts.append(ArrayQuestionPart(q.number, part_no, k, ans=ans))
+                parts.append(ArrayQuestionPart(
+                    q_no, part_no, f'Array {arr_key}', ans=ans))
             elif not isinstance(v, (dict, list)):
-                parts.append(StringQuestionPart(q.number, part_no, k,
+                parts.append(StringQuestionPart(q_no, part_no, k,
                                                 params.get(k, params), ans_key.get(k, ""), v))
             else:
                 print("Skipping unsupported question part:", k, json.dumps(v))
 
         if params.get('_required_file_names', False):
             parts.append(FileQuestionPart(
-                q.number, len(parts) + 1, 'required_files', files=params['_required_file_names']))
-
-        self.parts = parts
+                q_no, len(parts) + 1, 'required_files', files=params['_required_file_names']))
+        return parts
 
     def render(self, pdf: PDF, template=False):
         '''
@@ -405,6 +439,10 @@ class StudentQuestion:
 
 
 class Submission:
+    '''
+        encapsulates a student pl submission.
+    '''
+
     def __init__(self, uid: str):
         self.uid = uid
         self.questions = dict()
@@ -422,6 +460,10 @@ class Submission:
         pdf.cell(0, 20, f'PL UID: {self.uid}', ln=1, align='C')
 
     def render_submission(self, pdf: PDF, qMap: AssignmentConfig, template=False):
+        '''
+            renders all of the student's answers/questions to the given question,
+            in the order described by the given question map.
+        '''
         pdf.add_page()
         self.render_front_page(pdf)
         for q in qMap.get_question_list():
@@ -434,3 +476,19 @@ class Submission:
                     count -= 1
                     pdf.add_page()
                     sq.render(pdf, template)
+
+    def list_questions(self, qMap: AssignmentConfig):
+        '''
+            lists the question variants the student has, in the order expected by qMap
+        '''
+        row = []
+        for q in qMap.get_question_list():
+            count = q.number_choose
+            for qv in q.variants:
+                if count == 0:
+                    break
+                sq = self.get_student_question(qv)
+                if sq != None:
+                    count -= 1
+                    row.append(sq.variant)
+        return row

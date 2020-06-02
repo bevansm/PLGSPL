@@ -4,7 +4,7 @@ import plgspl.questions as qs
 from plgspl.types import PDF
 import os
 import json
-from plgspl.cfg import cfg, get_cfg
+from plgspl.cfg import get_cfg
 
 
 def to_pdf(info_json, manual_csv, file_dir=None):
@@ -13,7 +13,7 @@ def to_pdf(info_json, manual_csv, file_dir=None):
 
     # load the raw assignment config file
     cfg = json.load(open(info_json))
-    out_file = cfg.get("title", "assignment")
+    out_file = cfg.get("title", "assignment").replace(" ", "_")
     zones = cfg['zones']
     print(f'Parsing config for {out_file}...')
     for z in zones:
@@ -37,6 +37,7 @@ def to_pdf(info_json, manual_csv, file_dir=None):
         uid = str(m['UIN'])
         qid = m['qid']
         sid = m['submission_id']
+
         submission = submissions.get(uid)
         if not submission:
             submission = qs.Submission(uid)
@@ -64,7 +65,7 @@ def to_pdf(info_json, manual_csv, file_dir=None):
         pdf.output(os.path.join(os.getcwd(), f'{out_file}_{name}.pdf'))
 
     prev = 1
-    for i, (k, v) in enumerate(submissions.items()):
+    for i, (_, v) in enumerate(submissions.items()):
         v: qs.Submission
         v.render_submission(pdf, config)
         if i == 0:
@@ -79,5 +80,8 @@ def to_pdf(info_json, manual_csv, file_dir=None):
             pdf_output(pdf, f'{i - max_submissions + 1}-{i + 1}')
             prev = i + 1
             pdf = PDF()
-    if prev < len(submissions):
+    if prev < len(submissions) or len(submissions) == 1:
         pdf_output(pdf, f'{prev}-{len(submissions)}')
+
+    json.dump({k: v.list_questions(config)
+               for k, v in submissions.items()}, open(f'{out_file}_qmap.json', 'w'))

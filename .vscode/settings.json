@@ -1,4 +1,7 @@
 {
   "git.ignoreLimitWarning": true,
-  "C_Cpp.ErrorSquiggles": "Disabled"
+  "C_Cpp.ErrorSquiggles": "Disabled",
+  "python.analysis.disabled": [
+    "unresolved-import"
+  ]
 }
