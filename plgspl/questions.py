@@ -6,6 +6,7 @@ import json
 import os
 import collections
 from plgspl.cfg import cfg, get_cfg
+import markdown2
 
 
 lineWidth = get_cfg('page', 'lineWidth', default=180, cast=int)
@@ -185,13 +186,19 @@ class StudentFileBundle():
             self.files[filename] = {"path": "", "rendered": True}
         if file and not file["rendered"]:
             file["rendered"] = True
-            font = get_cfg('font', 'code')
-            if not os.path.split((file["path"]))[1] in str(font['ext']):
-                font = get_cfg('font', 'body')
+            path = file["path"]
+            ext = os.path.splitext(path)[1][1:]
+
+            font = get_cfg('font', 'code') if ext in get_cfg('files', 'code') else get_cfg('font', 'body')
             pdf.set_font(font['font'], size=font['size'])
 
-            for line in open(file["path"], 'r'):
-                pdf.multi_cell(lineWidth, lineHeight, txt=line)
+            if ext in get_cfg('files', 'md'):
+                pdf.write_html(markdown2.markdown_path(path))
+            elif ext in get_cfg('files', 'pics'):
+                pdf.image(path, w=lineWidth)
+            else:
+                for line in open(path, 'r'):
+                    pdf.multi_cell(lineWidth, lineHeight, txt=line)
 
         pad_until(pdf, start + get_cfg('maxPages', 'file', cast=int, default=1) - 1,
                   f'padding for file {filename}')
@@ -269,6 +276,9 @@ class FileQuestionPart(QuestionPart):
         self.file_bundle = file_bundle
         self.max_pages = get_cfg("maxPages", "file",
                                  cast=int, default=1) * len(files)
+
+    def render_ctx(self, pdf): pass
+    def render_expected(self, pdf): pass
 
     def render_ans(self, pdf: PDF):
         if self.file_bundle:
@@ -415,7 +425,7 @@ class StudentQuestion:
 
         if params.get('_required_file_names', False):
             parts.append(FileQuestionPart(
-                q_no, len(parts) + 1, 'required_files', files=params['_required_file_names']))
+                q_no, len(parts) + 1, 'required_files', files=params['_required_file_names'], file_bundle=self.file_bundle ))
         return parts
 
     def render(self, pdf: PDF, template=False):

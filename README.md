@@ -38,7 +38,7 @@ There is an [issue open on PL](https://github.com/PrairieLearn/PrairieLearn/issu
   - [x] `pl-file-editor`, `pl-file-upload`
   - [ ] `pl-symbolic-input`
 - feature support:
-  - markdown file formatting
+  - [x] markdown file formatting
 - cli:
   - [x] `classlist`: map pl to gs classlist
   - [x] `pdf`: produce a pdf from pl data
