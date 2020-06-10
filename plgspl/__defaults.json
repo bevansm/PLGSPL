@@ -5,9 +5,14 @@
   },
   "maxPages": {
     "description": "maximum pages to devote to a given file/answer part/type, including question ctx",
-    "file": 2,
+    "file": 1,
     "string": 1,
     "default": 1
+  },
+  "files": {
+    "code": ["cpp", "h"],
+    "pics": ["png", "jpeg"],
+    "md": ["md"]
   },
   "page": {
     "description": "page sizes in mm",
@@ -51,8 +56,7 @@
       "font": "arial"
     },
     "code": {
-      "ext": ["cpp", "h"],
-      "font": "arial",
+      "font": "courier",
       "size": 10
     }
   },
