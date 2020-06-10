@@ -4,12 +4,12 @@ setup(
     name='plgspl',
     version='0.0.0',
     packages=['plgspl'],
-    install_requires=['fpdf', 'pandas', 'numpy'],
+    install_requires=['fpdf', 'pandas', 'numpy', 'markdown2'],
     entry_points={
         'console_scripts': [
             'plgspl = plgspl.plgspl:main'
         ]
     },
-    package_data={'plgspl': ['__defaults.json']},
+    package_data={'plgspl': ['__defaults.json', 'files/*']},
     include_package_data=True
     )
