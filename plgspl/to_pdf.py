@@ -18,13 +18,13 @@ def to_pdf(info_json, manual_csv, file_dir=None):
     print(f'Parsing config for {out_file}...')
     for z in zones:
         for i, raw_q in enumerate(z['questions']):
-            q = None
+            parts = raw_q['parts'] if 'parts' in raw_q else []
             if 'id' not in raw_q:
                 vs = list(map(lambda q: q['id'], raw_q['alternatives']))
                 q = qs.QuestionInfo(
-                    vs[0], i, variants=vs, number_choose=raw_q['numberChoose'])
+                    vs[0], i + 1, variants=vs, number_choose=raw_q['numberChoose'], parts=parts)
             else:
-                q = qs.QuestionInfo(raw_q['id'], i + 1)
+                q = qs.QuestionInfo(raw_q['id'], i + 1, parts=parts)
             config.add_question(q)
     print(
         f'Parsed config. Created {config.get_question_count()} questions and {config.get_variant_count()} variants.', end='\n\n')
