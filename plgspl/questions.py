@@ -107,17 +107,22 @@ class QuestionInfo():
 
     def __init__(self, qid: str,
                  number: int,
-                 variants: List[str] = None,
+                 variants: List[str] = False,
+                 parts: List[str] = False,
                  expected_files: set = False,
                  number_choose: int = 1):
         self.qid = qid
         self.number = number
         self.expected_files = expected_files or set()
+        self.parts = set(map(str.upper, parts or []))
         self.number_choose = number_choose
-        self.variants = variants if variants else [qid]
+        self.variants = variants or [qid]
 
     def add_file(self, filename):
         self.expected_files.add(parse_filename(filename, self.qid))
+    
+    def is_part(self, part_name: str):
+        return len(self.parts) == 0 or part_name.upper() in self.parts
 
     def render(self, pdf: PDF):
         render_header(pdf, f'Question {self.number}: {self.qid}')
@@ -390,7 +395,7 @@ class StudentQuestion:
             k, v = student_answer.popitem(False)
             k: str
             part_no = len(parts) + 1
-            if k.find("_file_editor") == 0:
+            if k.find("_file_editor") == 0 or not self.question.is_part(k):
                 continue
             elif (k.find('res') == 0
                   and isinstance(ans_key.get(k, False), list)
@@ -424,8 +429,9 @@ class StudentQuestion:
                 print("Skipping unsupported question part:", k, json.dumps(v))
 
         if params.get('_required_file_names', False):
+            file_names = list(filter(lambda p: p in self.question.expected_files, params['_required_file_names']))
             parts.append(FileQuestionPart(
-                q_no, len(parts) + 1, 'required_files', files=params['_required_file_names'], file_bundle=self.file_bundle ))
+                q_no, len(parts) + 1, 'required_files', files=file_names, file_bundle=self.file_bundle ))
         return parts
 
     def render(self, pdf: PDF, template=False):
