@@ -31,7 +31,7 @@ def main():
         validate_files(args[0:1])
         file_dir = args[2] if len(args) == 3 else None
         if file_dir and not os.path.isdir(file_dir):
-            print("Unable to find the given file directory: %s" % f)
+            print("Unable to find the given file directory: %s" % file_dir)
             sys.exit(1)
         to_pdf(args[0], args[1], file_dir)
     elif cmd == "classlist":
