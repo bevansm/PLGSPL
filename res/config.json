@@ -12,6 +12,7 @@
         {
           "description": "this is a string question with multiple types of inputs",
           "id": "h1_2020S_2a_msamericana",
+          "files": ["playListAns.cpp", "mdtest.md", "picture.png"],
           "points": 1
         },
         {

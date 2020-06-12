@@ -27,7 +27,7 @@ def get_question_number(q):
     return int(q.split(":", 1)[0].split(".", 1)[0]) 
 
 
-def merge(gs_csv, qmap_json, instance=1):
+def merge(qmap_json, gs_csv, instance=1):
     '''
         given a gradescope csv and a plgspl question map (per student),
         generates a "manual grading" csv for pl 
@@ -50,11 +50,16 @@ def merge(gs_csv, qmap_json, instance=1):
             continue
 
         part_scores = list(r[9:])
-        for variant, parts, max_score in zip(pl_qmap[sid], gs_questions, gs_max_score):
+        for qInfo, parts, max_score in zip(pl_qmap[sid], gs_questions, gs_max_score):
+            variant = qInfo[0]
+            weight = qInfo[1]/qInfo[2]
+            old_score = qInfo[3]
+
             score = 0
             for _ in range(len(parts)):
                 score += float(part_scores.pop())
             score_perc = 0 if score == 0 else (score/max_score) * 100
+            score_perc = weight * score_perc + old_score
             csv_rows.append([email, instance, variant, score_perc])
 
     pl_df = pd.DataFrame(
