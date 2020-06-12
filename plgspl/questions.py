@@ -7,11 +7,13 @@ import os
 import collections
 from plgspl.cfg import cfg, get_cfg
 import markdown2
-
+from unidecode import unidecode
 
 lineWidth = get_cfg('page', 'lineWidth', default=180, cast=int)
 lineHeight = get_cfg('page', 'lineHeight', default=0, cast=int)
 
+def to_latin1(s: str) -> str:
+    return unidecode(s)
 
 def draw_line(pdf: PDF, width=lineWidth, color=get_cfg('font', 'header', 'line', default={"r": 0, "b": 0, "g": 0})):
     '''
@@ -196,14 +198,13 @@ class StudentFileBundle():
 
             font = get_cfg('font', 'code') if ext in get_cfg('files', 'code') else get_cfg('font', 'body')
             pdf.set_font(font['font'], size=font['size'])
-
             if ext in get_cfg('files', 'md'):
-                pdf.write_html(markdown2.markdown_path(path))
+                pdf.write_html(to_latin1(markdown2.markdown_path(path)))
             elif ext in get_cfg('files', 'pics'):
                 pdf.image(path, w=lineWidth)
             else:
                 for line in open(path, 'r'):
-                    pdf.multi_cell(lineWidth, lineHeight, txt=line)
+                    pdf.multi_cell(lineWidth, lineHeight, txt=to_latin1(line))
 
         pad_until(pdf, start + get_cfg('maxPages', 'file', cast=int, default=1) - 1,
                   f'padding for file {filename}')
@@ -315,7 +316,7 @@ class StringQuestionPart(QuestionPart):
         pdf.multi_cell(lineWidth, lineHeight, txt=f'Expected: {self.true_ans}')
 
     def render_ans(self, pdf: PDF):
-        pdf.multi_cell(lineWidth, lineHeight, self.ans)
+        pdf.multi_cell(lineWidth, lineHeight, to_latin1(self.ans))
 
 
 class MCQuestionPart(QuestionPart):
