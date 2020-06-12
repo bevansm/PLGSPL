@@ -4,7 +4,7 @@ setup(
     name='plgspl',
     version='0.0.0',
     packages=['plgspl'],
-    install_requires=['fpdf', 'pandas', 'numpy', 'markdown2'],
+    install_requires=['fpdf', 'pandas', 'numpy', 'markdown2', 'unidecode'],
     entry_points={
         'console_scripts': [
             'plgspl = plgspl.plgspl:main'
