@@ -114,7 +114,6 @@ class QuestionInfo():
         self.qid = qid
         self.number = number
         self.expected_files = expected_files or set()
-        print(self.expected_files)
         self.parts = set(map(str.upper, parts or []))
         self.number_choose = number_choose
         self.variants = variants or [qid]

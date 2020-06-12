@@ -52,7 +52,6 @@ def to_pdf(info_json, manual_csv, file_dir=None):
         fns = []
         if file_dir:
             for fn in os.listdir(file_dir):
-                print(fn, qid, qs.parse_filename(fn, qid), q.expected_files)
                 if fn.find(f'{uid}_{qid}_{sid}') > -1 and qs.parse_filename(fn, qid) in q.expected_files:
                     fns.append(os.path.join(file_dir, fn))
                     q.add_file(os.path.join(file_dir, fn))
