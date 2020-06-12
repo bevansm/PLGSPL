@@ -19,12 +19,14 @@ def to_pdf(info_json, manual_csv, file_dir=None):
     for z in zones:
         for i, raw_q in enumerate(z['questions']):
             parts = raw_q['parts'] if 'parts' in raw_q else []
+            files = set(raw_q['files']) if 'files' in raw_q else set()
             if 'id' not in raw_q:
                 vs = list(map(lambda q: q['id'], raw_q['alternatives']))
-                q = qs.QuestionInfo(
-                    vs[0], i + 1, variants=vs, number_choose=raw_q['numberChoose'], parts=parts)
+                q = qs.QuestionInfo(vs[0], i + 1, 
+                    variants=vs, number_choose=raw_q['numberChoose'], 
+                    parts=parts, expected_files=files)
             else:
-                q = qs.QuestionInfo(raw_q['id'], i + 1, parts=parts)
+                q = qs.QuestionInfo(raw_q['id'], i + 1, parts=parts, expected_files=files)
             config.add_question(q)
     print(
         f'Parsed config. Created {config.get_question_count()} questions and {config.get_variant_count()} variants.', end='\n\n')
@@ -50,13 +52,14 @@ def to_pdf(info_json, manual_csv, file_dir=None):
         fns = []
         if file_dir:
             for fn in os.listdir(file_dir):
-                if fn.find(f'{uid}_{qid}_{sid}') > -1:
+                print(fn, qid, qs.parse_filename(fn, qid), q.expected_files)
+                if fn.find(f'{uid}_{qid}_{sid}') > -1 and qs.parse_filename(fn, qid) in q.expected_files:
                     fns.append(os.path.join(file_dir, fn))
                     q.add_file(os.path.join(file_dir, fn))
         submission.add_student_question(
             qs.StudentQuestion(q,
                                m['params'], m['true_answer'], m['submitted_answer'],
-                               qs.StudentFileBundle(fns, qid), qid, int(m[3])))
+                                qs.StudentFileBundle(fns, qid), qid, int(m[3])))
     print(f'Created {len(submissions)} submission(s)..')
 
     pdf = PDF()

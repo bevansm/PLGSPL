@@ -8,6 +8,6 @@
     - Specify parts (fields on the student_answer object from pl) if you only want to include certian quesiton parts. By default, we include them all
   - `MANUAL_CSV` should be a `**_submissions_for_manual_grading.csv` pl file.
   - `FILE_DIR` should be an unzipped file directory that corresponds to `**_files_for_manual_grading.zip` for `MANUAL_CSV`
-- `plgspl merge <assignment_name> <gs_csv> <config json> <instance>`
+- `plgspl merge <config json> <gs_csv> <instance>`
   - Converts the gs file for a given assignment into an pl file for upload: `pl_scores.csv`.
   - Instance defaults to 1

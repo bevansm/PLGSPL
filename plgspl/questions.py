@@ -114,6 +114,7 @@ class QuestionInfo():
         self.qid = qid
         self.number = number
         self.expected_files = expected_files or set()
+        print(self.expected_files)
         self.parts = set(map(str.upper, parts or []))
         self.number_choose = number_choose
         self.variants = variants or [qid]
@@ -383,6 +384,7 @@ class StudentQuestion:
         self.file_bundle = file_bundle
         self.variant = variant if variant else q.qid
         self.score = score if not override_score else override_score
+        self.max_parts = len(q.expected_files)
         self.parts = self.get_question_parts(
             json.loads(raw_params),
             json.loads(raw_ans_key),
@@ -395,7 +397,11 @@ class StudentQuestion:
             k, v = student_answer.popitem(False)
             k: str
             part_no = len(parts) + 1
-            if k.find("_file_editor") == 0 or not self.question.is_part(k):
+            if k.find("_file_editor") == 0:
+                continue
+
+            self.max_parts = self.max_parts + 1
+            if not self.question.is_part(k):
                 continue
             elif (k.find('res') == 0
                   and isinstance(ans_key.get(k, False), list)
@@ -420,6 +426,7 @@ class StudentQuestion:
                     ans.append(nxt)
                 if v:
                     ans.append(v)
+                self.max_parts = self.max_parts - 1 + len(ans)
                 parts.append(ArrayQuestionPart(
                     q_no, part_no, f'Array {arr_key}', ans=ans))
             elif not isinstance(v, (dict, list)):
@@ -496,6 +503,7 @@ class Submission:
     def list_questions(self, qMap: AssignmentConfig):
         '''
             lists the question variants the student has, in the order expected by qMap
+            alongside the the variant, the number of parts in the question, and the max parts in the question (for regrading purposes).
         '''
         row = []
         for q in qMap.get_question_list():
@@ -506,5 +514,5 @@ class Submission:
                 sq = self.get_student_question(qv)
                 if sq != None:
                     count -= 1
-                    row.append(sq.variant)
+                    row.append([sq.variant, len(sq.parts), sq.max_parts, sq.score])
         return row
