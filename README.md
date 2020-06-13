@@ -44,6 +44,9 @@ There is an [issue open on PL](https://github.com/PrairieLearn/PrairieLearn/issu
   - [x] `pdf`: produce a pdf from pl data
   - [x] `merge`: merge gs results with a pl manual grading csv for final grades
   - [ ] `config`: reset & set custom json files to override defaults
+- fixes
+  - [ ] integrate the `partial_scores` field
+  - [ ] migrate classlist so it's liked to cwl instead of the pl email
 
 ### Future
 
