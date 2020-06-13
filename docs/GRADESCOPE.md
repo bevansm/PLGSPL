@@ -28,4 +28,6 @@
 ## Exporting From Gradescope For PLGSPL "merge"
 
 1. Click on `Assignments > <ASSIGNMENT_NAME> > Review Grades > Download Grades > Download CSV`
-2.
+2. Download the resulting CSV.
+3. Run `plgspl merge <CONFIG JSON FROM PLGSPL PDF> <GS CSV>`
+4. Upload the resulting score CSV to prairielearn.
