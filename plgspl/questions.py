@@ -474,11 +474,24 @@ class Submission:
             for qv in q.variants:
                 if count == 0:
                     break
-                sq = self.get_student_question(qv) or (template_submission and template_submission.get_student_question(qv))
+                sq = self.get_student_question(qv)
                 if sq != None:
                     count -= 1
                     pdf.add_page()
                     sq.render(pdf, is_template)
+            if count != 0 and template_submission:
+                for qv in q.variants:
+                    if count == 0:
+                        break
+                    sq = self.get_student_question(qv)
+                    if sq != None:
+                        continue
+                    sq = template_submission.get_student_question(qv)
+                    if sq != None:
+                        count -= 1
+                        pdf.add_page()
+                        sq.render(pdf, True)
+
 
     def list_questions(self, qMap: AssignmentConfig):
         '''
