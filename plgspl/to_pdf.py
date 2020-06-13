@@ -91,6 +91,7 @@ def to_pdf(info_json, manual_csv, file_dir=None):
                 exit(1)
             while pdf.page_no() - start_page < expected_pages:
                 pdf.add_page() 
+                pdf.cell(0, 20, f'THIS IS A BLANK PAGE', ln=1, align='C')
 
         if i != 0 and i % max_submissions == 0:
             pdf_output(pdf, f'{i - max_submissions + 1}-{i + 1}')

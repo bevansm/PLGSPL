@@ -12,6 +12,7 @@
 ## Importing Into Gradescope From PLGSPL
 
 1. Run `plgspl pdf ...` to generate the assignment pdf. Save the resulting "question map" csv.
+   - There may be an error message listing submissions you will need to manually pair. Take note.
 2. In Gradescope, click `Assignments > Create Assignment > Exam/Quiz`
 3. Use the sample pdf as your template
 4. Create the sample outline
