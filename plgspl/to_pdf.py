@@ -74,24 +74,25 @@ def to_pdf(info_json, manual_csv, file_dir=None):
         start_page = pdf.page_no()
         v.render_submission(pdf, config)
         if i == 0:
-            pdf_output(pdf, "sample")
-            expected_pages = pdf.page_no()
+            sample_pdf = PDF()
+            v.render_submission(sample_pdf, config, True)
+            pdf_output(sample_pdf, "sample")
+            expected_pages = sample_pdf.page_no()
             max_submissions = get_cfg('gs', 'pagesPerPDF') / expected_pages
             if max_submissions < 1:
                 print('Cannot create submissions given the current max page constraint.')
                 print('Please adjust your defaults.')
                 exit(1)
             max_submissions = int(max_submissions)
-        else: 
-            diff = pdf.page_no() - start_page
-            if diff < expected_pages:
-                missing_questions.append(v.uid)
-            elif diff > expected_pages:
-                print('A submission exceeds the sample template. Please make sure that the first submission is complete')
-                exit(1)
-            while pdf.page_no() - start_page < expected_pages:
-                pdf.add_page() 
-                pdf.cell(0, 20, f'THIS IS A BLANK PAGE', ln=1, align='C')
+        diff = pdf.page_no() - start_page
+        if diff < expected_pages:
+            missing_questions.append(v.uid)
+        elif diff > expected_pages:
+            print(f'Submission {i}, {v.uid} exceeds the sample template. Please make sure that the first submission is complete')
+            exit(1)
+        while pdf.page_no() - start_page < expected_pages:
+            pdf.add_page() 
+            pdf.cell(0, 20, f'THIS IS A BLANK PAGE', ln=1, align='C')
 
         if i != 0 and i % max_submissions == 0:
             pdf_output(pdf, f'{i - max_submissions + 1}-{i + 1}')

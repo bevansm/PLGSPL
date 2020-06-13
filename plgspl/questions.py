@@ -164,57 +164,43 @@ class StudentFileBundle():
         manages and provides utility functions for a "file bundle",
         i.e. a set of absolute file paths for pl student file uploads
     '''
-
-    def __init__(self, files: List[str] = [], qid=""):
+    def __init__(self, paths: List[str] = [], qid=""):
         self.files = dict()
-        for file in files:
-            self.files[parse_filename(file, qid)] = {
-                "path": file, "rendered": False}
+        for path in paths:
+            self.add_file(qid, path)
 
-    def add_file(self, qid, file):
-        self.files[parse_filename(file, qid)] = {
-            "path": file, "rendered": False}
+    def add_file(self, qid, path):
+        self.files[parse_filename(path, qid)] = path
 
-    def was_rendered(self, file):
-        file = self.files.get(file, False)
-        return file and file["rendered"]
+    def pad_from(self, pdf, start, filename):
+        pad_until(pdf, start + get_cfg('maxPages', 'file', cast=int, default=1) - 1,
+                  f'padding for file {filename}')
 
-    def render_file(self, pdf: PDF, filename):
+    def render_file(self, pdf: PDF, filename, blank=False):
         '''
             Renders a file to a pdf. Does not start a fresh page.
-            Pads out the pages with blank pages if the file does not exist & has not been rendered.
-            else, does nothing
+            Pads out the pages with blank pages if the file does not exist
         '''
+        path = self.files.get(filename, False)
         start = pdf.page_no()
-        if self.was_rendered(filename):
-            return
-        file = self.files.get(filename, False)
         render_part_header(pdf, filename)
-        if not file:
-            self.files[filename] = {"path": "", "rendered": True}
-        if file and not file["rendered"]:
-            file["rendered"] = True
-            path = file["path"]
+        
+        if path:
+            start = pdf.page_no()
             ext = os.path.splitext(path)[1][1:]
-
             font = get_cfg('font', 'code') if ext in get_cfg('files', 'code') else get_cfg('font', 'body')
             pdf.set_font(font['font'], size=font['size'])
-            if ext in get_cfg('files', 'md'):
+
+            if blank:
+                pdf.cell(lineWidth, txt="This is a sample student answer.")
+            elif ext in get_cfg('files', 'md'):
                 pdf.write_html(to_latin1(markdown2.markdown_path(path)))
             elif ext in get_cfg('files', 'pics'):
                 pdf.image(path, w=lineWidth)
             else:
                 for line in open(path, 'r'):
-                    pdf.multi_cell(lineWidth, lineHeight, txt=to_latin1(line))
-
-        pad_until(pdf, start + get_cfg('maxPages', 'file', cast=int, default=1) - 1,
-                  f'padding for file {filename}')
-
-    # dumps the remainder of the files in this bundle into the question.
-    def render_all(self, pdf: PDF):
-        for f in self.files:
-            self.render_file(pdf, f)
-
+                    pdf.multi_cell(lineWidth, lineHeight, txt= to_latin1(line))
+        self.pad_from(pdf, start, filename)
 
 class QuestionPart():
     '''
@@ -249,6 +235,13 @@ class QuestionPart():
         '''
         pdf.cell(lineWidth, txt="No answer provided.")
 
+    def render_template_ans(self, pdf: PDF):
+        '''
+            renders the templated answer content to the pdf.
+            renders the string "no answer provided" if not overloaded
+        '''
+        pdf.cell(lineWidth, txt="This is a templated question part.")
+
     def render(self, pdf: PDF, score=0, as_template=False):
         """
             render a question part onto the pdf.
@@ -270,8 +263,7 @@ class QuestionPart():
         draw_line(pdf)
         self.render_expected(pdf)
         draw_line(pdf)
-        if not as_template:
-            self.render_ans(pdf)
+        self.render_ans(pdf) if not as_template else self.render_template_ans(pdf)
         pad_until(pdf, start + self.max_pages - 1,
                   f'padding for question {self.question_number}.{self.part}')
 
@@ -287,13 +279,19 @@ class FileQuestionPart(QuestionPart):
     def render_ctx(self, pdf): pass
     def render_expected(self, pdf): pass
 
-    def render_ans(self, pdf: PDF):
+    def render_ans_helper(self, pdf: PDF, template=False):
         if self.file_bundle:
             if len(self.files) > 0:
-                self.file_bundle.render_file(pdf, self.files[0])
+                self.file_bundle.render_file(pdf, self.files[0], template)
             for f in self.files[1:]:
                 pdf.add_page()
-                self.file_bundle.render_file(pdf, f)
+                self.file_bundle.render_file(pdf, f, template)
+
+    def render_template_ans(self, pdf: PDF):
+        self.render_ans_helper(pdf, True)
+
+    def render_ans(self, pdf: PDF):
+        self.render_ans_helper(pdf)
 
 
 class StringQuestionPart(QuestionPart):
@@ -424,9 +422,9 @@ class StudentQuestion:
                 continue
             parts.append(part)
 
-        if params.get('_required_file_names', False):
-            file_names = list(filter(lambda p: p in self.question.expected_files, params['_required_file_names']))
-            parts.append(FileQuestionPart(q_no, len(parts) + 1, 'required_files', files=file_names, file_bundle=self.file_bundle ))
+        file_names = list(self.question.expected_files or params.get('_required_file_names', []))
+        if len(file_names) > 0:
+            parts.append(FileQuestionPart(q_no, len(parts) + 1, 'files', files=file_names, file_bundle=self.file_bundle))
 
         return parts
 
@@ -436,18 +434,10 @@ class StudentQuestion:
             by default, does not start a new page for the first question.
         '''
         self.question.render(pdf)
-
         for i, p in enumerate(self.parts):
             if i != 0:
                 pdf.add_page()
             p.render(pdf, self.score, template)
-
-        for f in self.question.expected_files:
-            if not self.file_bundle.was_rendered(f):
-                pdf.add_page()
-                render_gs_anchor(pdf, f, -1)
-                self.file_bundle.render_file(pdf, f)
-
 
 class Submission:
     '''
@@ -464,11 +454,12 @@ class Submission:
     def get_student_question(self, variant) -> StudentQuestion:
         return self.questions.get(variant)
 
-    def render_front_page(self, pdf: PDF):
+    def render_front_page(self, pdf: PDF, template=False):
         pdf.set_font(get_cfg('font', 'title', 'font', default="arial"),
                      size=get_cfg('font', 'title', 'size', default=10, cast=int))
         pdf.cell(0, 60, ln=1)
-        pdf.cell(0, 20, f'PL UID: {self.uid}', ln=1, align='C')
+        id = self.uid if not template else "_" * len(self.uid)
+        pdf.cell(0, 20, f'PL UID: {id}', ln=1, align='C')
 
     def render_submission(self, pdf: PDF, qMap: AssignmentConfig, template=False):
         '''
@@ -476,7 +467,7 @@ class Submission:
             in the order described by the given question map.
         '''
         pdf.add_page()
-        self.render_front_page(pdf)
+        self.render_front_page(pdf, template)
         for q in qMap.get_question_list():
             count = q.number_choose
             for qv in q.variants:
