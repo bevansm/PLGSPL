@@ -238,9 +238,9 @@ class QuestionPart():
     def render_template_ans(self, pdf: PDF):
         '''
             renders the templated answer content to the pdf.
-            renders the string "no answer provided" if not overloaded
+            renders a blank string if not overloaded
         '''
-        pdf.cell(lineWidth, txt="This is a templated question part.")
+        pdf.cell(lineWidth, txt="")
 
     def render(self, pdf: PDF, score=0, as_template=False):
         """
@@ -257,7 +257,7 @@ class QuestionPart():
             pdf, f'Question {self.question_number}.{self.part}: {self.key}')
         pdf.set_font(get_cfg('font', 'body', 'font', default='arial'),
                      size=get_cfg('font', 'body', 'font', cast=int, default=10))
-        self.render_ctx(pdf)
+        # self.render_ctx(pdf)
         draw_line(pdf)
         render_gs_anchor(pdf, self.key, -1 if as_template else score)
         draw_line(pdf)
@@ -456,28 +456,29 @@ class Submission:
 
     def render_front_page(self, pdf: PDF, template=False):
         pdf.set_font(get_cfg('font', 'title', 'font', default="arial"),
-                     size=get_cfg('font', 'title', 'size', default=10, cast=int))
+                     size=get_cfg('font', 'title', 'size', default=10, cast=int),
+                     style="U")
         pdf.cell(0, 60, ln=1)
-        id = self.uid if not template else "_" * len(self.uid)
+        id = self.uid if not template else " " * len(self.uid)
         pdf.cell(0, 20, f'PL UID: {id}', ln=1, align='C')
 
-    def render_submission(self, pdf: PDF, qMap: AssignmentConfig, template=False):
+    def render_submission(self, pdf: PDF, qMap: AssignmentConfig, is_template=False, template_submission=None):
         '''
             renders all of the student's answers/questions to the given question,
             in the order described by the given question map.
         '''
         pdf.add_page()
-        self.render_front_page(pdf, template)
+        self.render_front_page(pdf, is_template)
         for q in qMap.get_question_list():
             count = q.number_choose
             for qv in q.variants:
                 if count == 0:
                     break
-                sq = self.get_student_question(qv)
+                sq = self.get_student_question(qv) or (template_submission and template_submission.get_student_question(qv))
                 if sq != None:
                     count -= 1
                     pdf.add_page()
-                    sq.render(pdf, template)
+                    sq.render(pdf, is_template)
 
     def list_questions(self, qMap: AssignmentConfig):
         '''

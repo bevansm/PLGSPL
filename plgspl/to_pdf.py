@@ -68,14 +68,16 @@ def to_pdf(info_json, manual_csv, file_dir=None):
 
     prev = 1
     expected_pages = 0
+    template_submission = None
     missing_questions = []
     for i, (_, v) in enumerate(submissions.items()):
         v: qs.Submission
         start_page = pdf.page_no()
-        v.render_submission(pdf, config)
+        v.render_submission(pdf, config, template_submission=template_submission)
         if i == 0:
             sample_pdf = PDF()
             v.render_submission(sample_pdf, config, True)
+            template_submission = v
             pdf_output(sample_pdf, "sample")
             expected_pages = sample_pdf.page_no()
             max_submissions = get_cfg('gs', 'pagesPerPDF') / expected_pages
@@ -101,7 +103,8 @@ def to_pdf(info_json, manual_csv, file_dir=None):
 
     if prev < len(submissions) or len(submissions) == 1:
         pdf_output(pdf, f'{prev}-{len(submissions)}')
-    print(f'{len(missing_questions)} submissions are missing question submissions. Please make sure to manually pair them in gradescope!', missing_questions, sep="\n")    
+    if len(missing_questions) > 0:
+        print(f'{len(missing_questions)} submissions are missing question submissions. Please make sure to manually pair them in gradescope!', missing_questions, sep="\n")    
 
     json.dump({k: v.list_questions(config)
                for k, v in submissions.items()}, open(f'{out_file}_qmap.json', 'w'))
