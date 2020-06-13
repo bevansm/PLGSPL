@@ -5,7 +5,9 @@
   - `INFO_JSON` should be similar to the sample file in [the sample config file](../res/config.json) 
     - You may base this upon the `assignmentInfo.json` file from pl
     - Drop questions you don't want in the pdf dropped from the file
-    - Specify parts (fields on the student_answer object from pl) if you only want to include certian quesiton parts. By default, we include them all
+    - Specify parts (fields on the student_answer object from pl) if you only want to include certian quesiton parts.
+      - This is case sensitive.
+      - All parts included by default.
   - `MANUAL_CSV` should be a `**_submissions_for_manual_grading.csv` pl file.
   - `FILE_DIR` should be an unzipped file directory that corresponds to `**_files_for_manual_grading.zip` for `MANUAL_CSV`
 - `plgspl merge <config json> <gs_csv> <instance>`

@@ -4,6 +4,7 @@ from functools import reduce
 from typing import List, Dict
 import json
 import os
+import re
 import collections
 from plgspl.cfg import cfg, get_cfg
 import markdown2
@@ -116,7 +117,7 @@ class QuestionInfo():
         self.qid = qid
         self.number = number
         self.expected_files = expected_files or set()
-        self.parts = set(map(str.upper, parts or []))
+        self.parts = parts or []
         self.number_choose = number_choose
         self.variants = variants or [qid]
 
@@ -384,74 +385,61 @@ class StudentQuestion:
         self.file_bundle = file_bundle
         self.variant = variant if variant else q.qid
         self.score = score if not override_score else override_score
-        self.max_parts = len(q.expected_files)
+
+        ans_key = json.loads(raw_ans_key)
+        self.part_count = len(q.parts) + len(q.expected_files)
+        self.max_parts = len(q.expected_files) + len(ans_key)
         self.parts = self.get_question_parts(
             json.loads(raw_params),
-            json.loads(raw_ans_key),
-            collections.OrderedDict(json.loads(raw_student_answer).items()))
+            ans_key,
+            json.loads(raw_student_answer))
 
-    def get_question_parts(self, params: dict(), ans_key: dict(), student_answer: collections.OrderedDict):
+    def get_question_parts(self, params: dict(), ans_key: dict(), student_answer: dict()):
+        expected_parts = list(self.question.parts if len(self.question.parts) > 0 else filter(lambda k: k !="_file_editor", list(student_answer.keys())))
         parts = []
         q_no = self.question.number
-        while len(student_answer) > 0:
-            k, v = student_answer.popitem(False)
-            k: str
+        while len(expected_parts) > 0:
+            p = expected_parts.pop(0)
+            v = student_answer.get(p, None)
             part_no = len(parts) + 1
-            if k.find("_file_editor") == 0:
-                continue
-
-            self.max_parts = self.max_parts + 1
-            if not self.question.is_part(k):
-                continue
-            elif (k.find('res') == 0
-                  and isinstance(ans_key.get(k, False), list)
-                    and isinstance(params.get(k, False), list)):
-                parts.append(MCQuestionPart(q_no, part_no, k,
-                                            params.get(k, []), ans_key.get(k, []), v))
+            if v is None:
+                v = "No answer provided."
+                part = StringQuestionPart(q_no, part_no, p, params.get(p, ""), ans_key.get(p, ""), v)
+            elif p.find('res') == 0 and isinstance(ans_key.get(p, False), list) and isinstance(params.get(p, False), list):
+                part = MCQuestionPart(q_no, part_no, p, params.get(p, []), ans_key.get(p, []), v)
+            elif p.find(".") > 0 and p.rsplit(".", 1).pop().isnumeric():
+                key = p.rsplit(".", 1)[0]
+                regexp = re.compile(re.escape(key) + r"\.\d+$")
+                ans_keys = [x for x in expected_parts if regexp.match(x)]
+                ans_keys.sort()
+                expected_parts = [x for x in expected_parts if x not in ans_keys]
+                ans_vals = list(map(lambda x: student_answer.get(x, ""), ans_keys))
+                part = ArrayQuestionPart(q_no, part_no, f'Array {key}', ans=ans_vals)
             elif isinstance(v, dict) and v.get("_type", "") == "sympy":
-                parts.append(SymbolicQuestionPart(q_no, part_no, k,
-                                                  v["_value"], v["_variables"]))
-            elif k.find(".") > 0 and k.rsplit(".", 1).pop().isnumeric():
-                ans = []
-                arr_key = k.rsplit(".", 1)[0]
-                for i in range(len(student_answer)):
-                    nxt_key = f'{arr_key}.{i}'
-                    if nxt_key == k and v:
-                        nxt = v
-                        v = False
-                    else:
-                        nxt = student_answer.pop(nxt_key, False)
-                    if not nxt:
-                        break
-                    ans.append(nxt)
-                if v:
-                    ans.append(v)
-                self.max_parts = self.max_parts - 1 + len(ans)
-                parts.append(ArrayQuestionPart(
-                    q_no, part_no, f'Array {arr_key}', ans=ans))
+                part = SymbolicQuestionPart(q_no, part_no, p, v["_value"], v["_variables"])
             elif not isinstance(v, (dict, list)):
-                parts.append(StringQuestionPart(q_no, part_no, k,
-                                                params.get(k, params), ans_key.get(k, ""), v))
+                part = StringQuestionPart(q_no, part_no, p, params.get(p, params), ans_key.get(p, ""), v)
             else:
-                print("Skipping unsupported question part:", k, json.dumps(v))
+                print("Skipping unsupported question part:", p, json.dumps(v))
+                continue
+            parts.append(part)
 
         if params.get('_required_file_names', False):
             file_names = list(filter(lambda p: p in self.question.expected_files, params['_required_file_names']))
-            parts.append(FileQuestionPart(
-                q_no, len(parts) + 1, 'required_files', files=file_names, file_bundle=self.file_bundle ))
+            parts.append(FileQuestionPart(q_no, len(parts) + 1, 'required_files', files=file_names, file_bundle=self.file_bundle ))
+
         return parts
 
     def render(self, pdf: PDF, template=False):
         '''
             renders the question to the page.
-            by default, does not start a new page.
+            by default, does not start a new page for the first question.
         '''
         self.question.render(pdf)
 
-        if len(self.parts) > 0:
-            self.parts[0].render(pdf, self.score, template)
-        for p in self.parts[1:]:
-            pdf.add_page()
+        for i, p in enumerate(self.parts):
+            if i != 0:
+                pdf.add_page()
             p.render(pdf, self.score, template)
 
         for f in self.question.expected_files:
@@ -514,5 +502,5 @@ class Submission:
                 sq = self.get_student_question(qv)
                 if sq != None:
                     count -= 1
-                    row.append([sq.variant, len(sq.parts), sq.max_parts, sq.score])
+                    row.append([sq.variant, sq.part_count, sq.max_parts, sq.score])
         return row
