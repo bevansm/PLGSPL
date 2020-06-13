@@ -67,23 +67,39 @@ def to_pdf(info_json, manual_csv, file_dir=None):
         pdf.output(os.path.join(os.getcwd(), f'{out_file}_{name}.pdf'))
 
     prev = 1
+    expected_pages = 0
+    missing_questions = []
     for i, (_, v) in enumerate(submissions.items()):
         v: qs.Submission
+        start_page = pdf.page_no()
         v.render_submission(pdf, config)
         if i == 0:
             pdf_output(pdf, "sample")
-            max_submissions = get_cfg('gs', 'pagesPerPDF') / pdf.page_no()
+            expected_pages = pdf.page_no()
+            max_submissions = get_cfg('gs', 'pagesPerPDF') / expected_pages
             if max_submissions < 1:
                 print('Cannot create submissions given the current max page constraint.')
                 print('Please adjust your defaults.')
                 exit(1)
             max_submissions = int(max_submissions)
+        else: 
+            diff = pdf.page_no() - start_page
+            if diff < expected_pages:
+                missing_questions.append(v.uid)
+            elif diff > expected_pages:
+                print('A submission exceeds the sample template. Please make sure that the first submission is complete')
+                exit(1)
+            while pdf.page_no() - start_page < expected_pages:
+                pdf.add_page() 
+
         if i != 0 and i % max_submissions == 0:
             pdf_output(pdf, f'{i - max_submissions + 1}-{i + 1}')
             prev = i + 1
-            pdf = PDF()
+            pdf = PDF() 
+
     if prev < len(submissions) or len(submissions) == 1:
         pdf_output(pdf, f'{prev}-{len(submissions)}')
+    print(f'{len(missing_questions)} submissions are missing question submissions. Please make sure to manually pair them in gradescope!', missing_questions, sep="\n")    
 
     json.dump({k: v.list_questions(config)
                for k, v in submissions.items()}, open(f'{out_file}_qmap.json', 'w'))
