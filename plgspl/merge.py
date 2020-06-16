@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 from functools import reduce
 from typing import List
+from math import ceil
 
 
 def parse_points(q: str) -> float:
@@ -35,7 +36,7 @@ def merge(qmap_json, gs_csv, instance=1):
     pl_qmap = json.load(open(qmap_json))
     gs_df = pd.read_csv(gs_csv)
 
-    gs_question_parts = list(gs_df)[9:]
+    gs_question_parts = list(gs_df)[10:]
     gs_question_count = get_question_number(gs_question_parts[-1])
     gs_questions = [[] for _ in range(gs_question_count)]
     for p in gs_question_parts:
@@ -49,19 +50,19 @@ def merge(qmap_json, gs_csv, instance=1):
         if r[4] == "Missing":
             continue
 
-        part_scores = list(r[9:])
+        part_scores = list(r[10:])
         for qInfo, parts, max_score in zip(pl_qmap[sid], gs_questions, gs_max_score):
             variant = qInfo[0]
-            weight = qInfo[1]/qInfo[2]
+            new_weight = ceil(qInfo[1]/qInfo[2] * 100)
             old_score = qInfo[3]
 
             score = 0
             for _ in range(len(parts)):
                 score += float(part_scores.pop())
-            score_perc = 0 if score == 0 else (score/max_score) * 100
-            score_perc = weight * score_perc + old_score
-            csv_rows.append([email, instance, variant, score_perc])
+            score_perc = 0 if score == 0 else score/max_score
+            score_perc = min(new_weight * score_perc +  old_score, 100)
+            csv_rows.append([email, instance, variant, score_perc, f'{old_score} + {score}/{max_score} on gs'])
 
     pl_df = pd.DataFrame(
-        csv_rows, columns=['uid', 'instance', 'qid', 'score_perc'])
+        csv_rows, columns=['uid', 'instance', 'qid', 'score_perc', 'feedback'])
     pl_df.to_csv('pl_scores.csv', index=False)
