@@ -25,7 +25,7 @@ There is an [issue open on PL](https://github.com/PrairieLearn/PrairieLearn/issu
 
 ## Doccumentation
 
-- [PLGSPL and Gradescope](docs/GRADESCOPE.md)
+- [PLGSPL and Gradescope: Instructions](docs/USE.md)
 - [CLI](docs/CLI.md)
 - [Technical Notes, Assumptions, and Reference](docs/NOTES.md)
 
