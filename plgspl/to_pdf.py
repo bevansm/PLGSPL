@@ -22,11 +22,12 @@ def to_pdf(info_json, manual_csv, file_dir=None):
             files = set(raw_q['files']) if 'files' in raw_q else set()
             if 'id' not in raw_q:
                 vs = list(map(lambda q: q['id'], raw_q['alternatives']))
-                q = qs.QuestionInfo(vs[0], i + 1, 
-                    variants=vs, number_choose=raw_q['numberChoose'], 
-                    parts=parts, expected_files=files)
+                q = qs.QuestionInfo(vs[0], i + 1,
+                                    variants=vs, number_choose=raw_q['numberChoose'],
+                                    parts=parts, expected_files=files)
             else:
-                q = qs.QuestionInfo(raw_q['id'], i + 1, parts=parts, expected_files=files)
+                q = qs.QuestionInfo(
+                    raw_q['id'], i + 1, parts=parts, expected_files=files)
             config.add_question(q)
     print(
         f'Parsed config. Created {config.get_question_count()} questions and {config.get_variant_count()} variants.', end='\n\n')
@@ -36,7 +37,7 @@ def to_pdf(info_json, manual_csv, file_dir=None):
         f'Parsing submissions from {manual_csv} and provided file directory (if any)')
     manual = pd.read_csv(manual_csv)
     for i, m in manual.iterrows():
-        uid = str(m['UIN'])
+        uid = str(m['uid']).split("@", 1)[0]
         qid = m['qid']
         sid = m['submission_id']
 
@@ -58,7 +59,7 @@ def to_pdf(info_json, manual_csv, file_dir=None):
         submission.add_student_question(
             qs.StudentQuestion(q,
                                m['params'], m['true_answer'], m['submitted_answer'],
-                                qs.StudentFileBundle(fns, qid), qid, int(m[3])))
+                               qs.StudentFileBundle(fns, qid), qid, int(m[3])))
     print(f'Created {len(submissions)} submission(s)..')
 
     pdf = PDF()
@@ -73,7 +74,8 @@ def to_pdf(info_json, manual_csv, file_dir=None):
     for i, (_, v) in enumerate(submissions.items()):
         v: qs.Submission
         start_page = pdf.page_no()
-        v.render_submission(pdf, config, template_submission=template_submission)
+        v.render_submission(
+            pdf, config, template_submission=template_submission)
         if i == 0:
             sample_pdf = PDF()
             v.render_submission(sample_pdf, config, True)
@@ -90,21 +92,22 @@ def to_pdf(info_json, manual_csv, file_dir=None):
         if diff < expected_pages:
             missing_questions.append(v.uid)
         elif diff > expected_pages:
-            print(f'Submission {i}, {v.uid} exceeds the sample template. Please make sure that the first submission is complete')
+            print(
+                f'Submission {i}, {v.uid} exceeds the sample template. Please make sure that the first submission is complete')
             exit(1)
         while pdf.page_no() - start_page < expected_pages:
-            pdf.add_page() 
+            pdf.add_page()
             pdf.cell(0, 20, f'THIS IS A BLANK PAGE', ln=1, align='C')
 
         if i != 0 and i % max_submissions == 0:
             pdf_output(pdf, f'{i - max_submissions + 1}-{i + 1}')
             prev = i + 1
-            pdf = PDF() 
+            pdf = PDF()
 
     if prev < len(submissions) or len(submissions) == 1:
         pdf_output(pdf, f'{prev}-{len(submissions)}')
     if len(missing_questions) > 0:
-        print(f'{len(missing_questions)} submissions are missing question submissions. Please make sure to manually pair them in gradescope!', missing_questions, sep="\n")    
+        print(f'{len(missing_questions)} submissions are missing question submissions. Please make sure to manually pair them in gradescope!', missing_questions, sep="\n")
 
     json.dump({k: v.list_questions(config)
                for k, v in submissions.items()}, open(f'{out_file}_qmap.json', 'w'))
