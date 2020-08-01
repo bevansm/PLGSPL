@@ -1,0 +1,84 @@
+{
+    "uuid": "bbf875a2-d0b9-4830-949d-ba8de781025e",
+    "type": "Exam",
+    "title": "Examlet Five",
+    "set": "Exam",
+    "number": "5",
+    "multipleInstance": false,
+    "allowRealTimeGrading": true,
+    "zones": [
+        {
+      "title": "Running Room",
+      "questions": [
+        {
+                "numberChoose": 3,
+                "points": 3,
+                "alternatives": [
+                    {"id": "rt02", "points": 1},
+                    {"id": "rt06", "points": 1},
+                    {"id": "rt08", "points": 1},
+                    {"id": "rt09", "points": 1},
+                    {"id": "rt12", "points": 1},
+                    {"id": "rt13", "points": 1},
+                    {"id": "rt14", "points": 1},
+                    {"id": "rt15", "points": 1},
+                    {"id": "rt21", "points": 1},
+                    {"id": "rt22", "points": 1},
+                    {"id": "rt23", "points": 1},
+                    {"id": "rt24", "points": 1},
+                    {"id": "rt26", "points": 1},
+                    {"id": "rt28", "points": 1},
+                    {"id": "rt30", "points": 1},
+                    {"id": "rt31", "points": 1},
+                    {"id": "rt33", "points": 1},
+                    {"id": "rt39", "points": 1},
+                    {"id": "rt40", "points": 1},
+                    {"id": "rt41", "points": 1},
+                    {"id": "rt43", "points": 1}
+                ]
+            }
+      ]
+    },
+
+        {
+            "title": "Priority Queues and Heaps",
+            "questions": [
+                {"id":"heap_shorts_array_implementation_mc","points":2},
+                {"id":"heap_shorts_build_heap","points":2},
+                {"id":"heap_shorts_operations","points":2}
+            ]
+        },
+        {
+            "title": "Disjoint Sets",
+            "questions": [
+                {"id":"disjt_unions","points":2}
+            ]
+        },
+        {
+            "title": "Graphs",
+            "questions": [
+                {"id": "edge_bds", "points":3},
+                {
+                    "numberChoose": 1,
+                    "points": 1,
+                    "alternatives": [
+                        {"id": "lq12_mc-final-001a","points": 1},
+                        {"id": "lq12_mc-final-001b","points": 1},
+                        {"id": "lq12_mc-final-001c","points": 1},
+                        {"id": "lq12_mc-final-001d","points": 1},
+                        {"id": "lq12_quiz15-graphdefn-a","points": 1},
+                        {"id": "lq12_quiz15-graphdefn-b","points": 1},
+                        {"id": "lq12_quiz15-graphdefn-c","points": 1},
+                        {"id": "lq12_quiz15-graphdefn-d","points": 1}
+                    ]
+                },
+                {"id": "unique_disc", "points": 1},
+                {"id": "v3_Graphs_running-time", "points": 1},
+                {"id": "v3_Graphs_traversal", "points":1}
+
+            ]
+        }
+
+    ]
+}
+

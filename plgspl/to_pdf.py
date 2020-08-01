@@ -57,9 +57,9 @@ def to_pdf(info_json, manual_csv, file_dir=None):
                     fns.append(os.path.join(file_dir, fn))
                     q.add_file(os.path.join(file_dir, fn))
         submission.add_student_question(
-            qs.StudentQuestion(q,
-                               m['params'], m['true_answer'], m['submitted_answer'],
-                               qs.StudentFileBundle(fns, qid), qid, int(m[3])))
+            qs.StudentQuestion(q, m['params'], m['true_answer'],
+                               m['submitted_answer'], m['partial_scores'],
+                               qs.StudentFileBundle(fns, qid), qid))
     print(f'Created {len(submissions)} submission(s)..')
 
     pdf = PDF()

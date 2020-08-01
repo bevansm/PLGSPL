@@ -2,6 +2,10 @@ import pandas as pd
 
 
 def classlist(pl_csv):
+    '''
+        generates a mock classlist csv for easy setup of a "mock" class on GradeScope
+        from PL information
+    '''
     pl_csv = pd.read_csv(pl_csv)
     students = dict()
     for uin, uid in zip(pl_csv.UIN, pl_csv.uid):
