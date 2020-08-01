@@ -15,6 +15,7 @@ PLGSPL makes a few assumptions about the structure of an assignment:
 
 - All parts of a problem, including file editor questions & uploaded files, are one point.
 - Students earned 0 marks for any question parts specified in the config file.
+- A student's email on PL uses their GS id as a prefix, i.e. `peterporker@ubc.ca` will map to a GS id of `peterporker`
 
 ## Creating PDFS for Gradescope
 
@@ -43,32 +44,32 @@ If you do not specify either field, PLGSPL will try to append all parts and file
 
 Below is a sample PLGSPL config for a single zone:
 
-   ```json
-      {
-         "questions": [
-        {
-          "id": "h1_2020S_2a_msamericana",
-          "parts":["ans1", "ans2"]
-          "files": ["playListAns.cpp", "mdtest.md", "picture.png"],
-          "points": 1
-        },
-        {
-          "numberChoose": 1,
-          "points": 1,
-          "parts": ["a", "b"],
-          "alternatives": [
-            {
-              "id": "lq02_2a_bestworst",
-              "points": 1
-            },
-            {
-              "id": "lq02_2b_bestworst",
-              "points": 1
-            }
-          ]
-        }]
-      }
-   ```
+```json
+   {
+      "questions": [
+     {
+       "id": "h1_2020S_2a_msamericana",
+       "parts":["ans1", "ans2"]
+       "files": ["playListAns.cpp", "mdtest.md", "picture.png"],
+       "points": 1
+     },
+     {
+       "numberChoose": 1,
+       "points": 1,
+       "parts": ["a", "b"],
+       "alternatives": [
+         {
+           "id": "lq02_2a_bestworst",
+           "points": 1
+         },
+         {
+           "id": "lq02_2b_bestworst",
+           "points": 1
+         }
+       ]
+     }]
+   }
+```
 
 ### Creating PDFs With PLGSPL
 
