@@ -13,9 +13,8 @@
 
 PLGSPL makes a few assumptions about the structure of an assignment:
 
-- All parts of a problem, including file editor questions & uploaded files, are one point.
-- Students earned 0 marks for any question parts specified in the config file.
 - A student's email on PL uses their GS id as a prefix, i.e. `peterporker@ubc.ca` will map to a GS id of `peterporker`
+- Strings don't _need_ unicode characters. PLGSPL will try its best to simpily strings.
 
 ## Creating PDFS for Gradescope
 
@@ -45,30 +44,31 @@ If you do not specify either field, PLGSPL will try to append all parts and file
 Below is a sample PLGSPL config for a single zone:
 
 ```json
-   {
-      "questions": [
-     {
-       "id": "h1_2020S_2a_msamericana",
-       "parts":["ans1", "ans2"]
-       "files": ["playListAns.cpp", "mdtest.md", "picture.png"],
-       "points": 1
-     },
-     {
-       "numberChoose": 1,
-       "points": 1,
-       "parts": ["a", "b"],
-       "alternatives": [
-         {
-           "id": "lq02_2a_bestworst",
-           "points": 1
-         },
-         {
-           "id": "lq02_2b_bestworst",
-           "points": 1
-         }
-       ]
-     }]
-   }
+{
+  "questions": [
+    {
+      "id": "h1_2020S_2a_msamericana",
+      "parts": ["ans1", "ans2"],
+      "files": ["playListAns.cpp", "mdtest.md", "picture.png"],
+      "points": 1
+    },
+    {
+      "numberChoose": 1,
+      "points": 1,
+      "parts": ["a", "b"],
+      "alternatives": [
+        {
+          "id": "lq02_2a_bestworst",
+          "points": 1
+        },
+        {
+          "id": "lq02_2b_bestworst",
+          "points": 1
+        }
+      ]
+    }
+  ]
+}
 ```
 
 ### Creating PDFs With PLGSPL
@@ -89,8 +89,8 @@ Below is a sample PLGSPL config for a single zone:
    1. Assign the UID line on the front page to an "ID Region"
    2. For each question:
       - Create a gradescope question. Note that the same question with multiple variants should be a single question on gradescope; create seperate rubric groups for each variant if needbe.
-      - Pair each part of the question with their respective gradescope anchor boxes or the question area, as you see fit.
-      - Weight each part as you see fit.
+      - Pair each part of the question with their respective gradescope anchor boxes or the question area, as you see fit. Each question part should have a title corresponding to the PL part it came from, i.e. if the part was called "bestOrder123" on PL, you should give the GS question part a title of "bestOrder123"
+      - Weight each part as you see fit. Remember that each question part will end up being out of max one point when re-uploaded to PL.
 
 5. Upload submission pdfs. Adjust splits as needed.
 6. As these pdfs are programatically generated, you should be able to group them easily.
@@ -101,3 +101,7 @@ Below is a sample PLGSPL config for a single zone:
 2. Download the resulting CSV.
 3. Run `plgspl merge <CONFIG JSON FROM PLGSPL PDF> <GS CSV>`
 4. Upload the resulting score CSV to prairielearn.
+
+## Customizing PLGSPL
+
+`_defaults.json` contains default values for different formatting considerations with PLGSPL. Read the `"description"` keys for each to find out more.

@@ -13,8 +13,10 @@ from unidecode import unidecode
 lineWidth = get_cfg('page', 'lineWidth', default=180, cast=int)
 lineHeight = get_cfg('page', 'lineHeight', default=0, cast=int)
 
+
 def to_latin1(s: str) -> str:
     return unidecode(s)
+
 
 def draw_line(pdf: PDF, width=lineWidth, color=get_cfg('font', 'header', 'line', default={"r": 0, "b": 0, "g": 0})):
     '''
@@ -69,27 +71,28 @@ def render_part_header(pdf: PDF, txt):
 def render_gs_anchor(pdf: PDF, variant, score=0):
     '''
         Renders the gs anchor box for a given question/question part.
-        -1:     Empty box. Intended for template variants.
-         0:     Completely incorrect answer.
-        < 100:  Partially correct answer.
-        100:    Completely correct answer.
+         -1: Empty box. Intended for template variants.
+          0: Completely incorrect answer.
+        < 1: Partially correct answer.
+          1: Completely correct answer.
     '''
     if score == -1:
         a_cfg = get_cfg('gsAnchor', 'blank')
     elif score == 0:
         a_cfg = get_cfg('gsAnchor', 'incorrect')
-    elif score < 100:
+    elif score < 1:
         a_cfg = get_cfg('gsAnchor', 'partial')
-    elif score == 100:
+    elif score == 1:
         a_cfg = get_cfg('gsAnchor', 'correct')
     else:
         return
     fill = a_cfg['fill']
+    text = f'{a_cfg["text"]}: {score}' if score > -1 else a_cfg['text']
     pdf.set_font(cfg['font']['body']['font'])
     pdf.set_fill_color(fill['r'], fill['g'], fill['b'])
     pdf.cell(lineWidth,
              h=get_cfg('gsAnchor', 'height'),
-             txt=a_cfg["text"],
+             txt=text,
              fill=True)
     pdf.ln()
 
@@ -123,7 +126,7 @@ class QuestionInfo():
 
     def add_file(self, filename):
         self.expected_files.add(parse_filename(filename, self.qid))
-    
+
     def is_part(self, part_name: str):
         return len(self.parts) == 0 or part_name.upper() in self.parts
 
@@ -164,6 +167,7 @@ class StudentFileBundle():
         manages and provides utility functions for a "file bundle",
         i.e. a set of absolute file paths for pl student file uploads
     '''
+
     def __init__(self, paths: List[str] = [], qid=""):
         self.files = dict()
         for path in paths:
@@ -184,11 +188,12 @@ class StudentFileBundle():
         path = self.files.get(filename, False)
         start = pdf.page_no()
         render_part_header(pdf, filename)
-        
+
         if path:
             start = pdf.page_no()
             ext = os.path.splitext(path)[1][1:]
-            font = get_cfg('font', 'code') if ext in get_cfg('files', 'code') else get_cfg('font', 'body')
+            font = get_cfg('font', 'code') if ext in get_cfg(
+                'files', 'code') else get_cfg('font', 'body')
             pdf.set_font(font['font'], size=font['size'])
 
             if blank:
@@ -199,18 +204,20 @@ class StudentFileBundle():
                 pdf.image(path, w=lineWidth)
             else:
                 for line in open(path, 'r'):
-                    pdf.multi_cell(lineWidth, lineHeight, txt= to_latin1(line))
+                    pdf.multi_cell(lineWidth, lineHeight, txt=to_latin1(line))
         self.pad_from(pdf, start, filename)
+
 
 class QuestionPart():
     '''
         encapsulates a part of a question.
     '''
 
-    def __init__(self, question_number: int, part: int, key):
+    def __init__(self, question_number: int, part: int, key, score: int = 0, weight: int = 1):
         self.question_number = question_number
         self.part = part
         self.key = key
+        self.score = score
         self.max_pages = get_cfg('maxPages', 'default', cast=int, default=1)
 
     def render_ctx(self, pdf: PDF):
@@ -242,7 +249,7 @@ class QuestionPart():
         '''
         pdf.cell(lineWidth, txt="")
 
-    def render(self, pdf: PDF, score=0, as_template=False):
+    def render(self, pdf: PDF, as_template=False):
         """
             render a question part onto the pdf.
             1. renders the question ctx, if any
@@ -259,18 +266,23 @@ class QuestionPart():
                      size=get_cfg('font', 'body', 'font', cast=int, default=10))
         # self.render_ctx(pdf)
         draw_line(pdf)
-        render_gs_anchor(pdf, self.key, -1 if as_template else score)
+        render_gs_anchor(pdf, self.key, -1 if as_template else self.score)
         draw_line(pdf)
         self.render_expected(pdf)
         draw_line(pdf)
-        self.render_ans(pdf) if not as_template else self.render_template_ans(pdf)
+        self.render_ans(
+            pdf) if not as_template else self.render_template_ans(pdf)
         pad_until(pdf, start + self.max_pages - 1,
                   f'padding for question {self.question_number}.{self.part}')
 
 
 class FileQuestionPart(QuestionPart):
-    def __init__(self, question_number: int, part: int, key, files=[], file_bundle=None):
-        super().__init__(question_number, part, key)
+    '''
+        a file question part. may include multiple files.
+    '''
+
+    def __init__(self, question_number: int, part: int, key, score: int = 0, weight: int = 1, files=[], file_bundle=None):
+        super().__init__(question_number, part, key, score, weight)
         self.files = files
         self.file_bundle = file_bundle
         self.max_pages = get_cfg("maxPages", "file",
@@ -295,8 +307,12 @@ class FileQuestionPart(QuestionPart):
 
 
 class StringQuestionPart(QuestionPart):
-    def __init__(self, question_number: int, part: int, key, ctx='', true_ans='', ans=''):
-        super().__init__(question_number, part, key)
+    '''
+        a string question part. can be a short answer or longform text from a text box.
+    '''
+
+    def __init__(self, question_number: int, part: int, key, score: int = 0, weight: int = 1, ctx='', true_ans='', ans=''):
+        super().__init__(question_number, part, key, score, weight)
         self.ans = str(ans)
         self.ctx = ctx
         self.true_ans = str(true_ans)
@@ -319,8 +335,16 @@ class StringQuestionPart(QuestionPart):
 
 
 class MCQuestionPart(QuestionPart):
-    def __init__(self, question_number: int, part: int, key, ctx=[], true_ans=[], ans=[]):
-        super().__init__(question_number, part, key)
+    '''
+        a multiple choice question part.
+
+        please note that 9/10 times, it's easier to write a regrade script for this then to require multiple
+        choice parts in your question. this class was intended as an initial POC for what a question part
+        might look like, and how HTML might render on PDFS
+    '''
+
+    def __init__(self, question_number: int, part: int, key, score: int = 0, weight: int = 1, ctx=[], true_ans=[], ans=[]):
+        super().__init__(question_number, part, key, score, weight)
         self.ans = ans
         self.ctx = ctx
         self.true_ans = true_ans
@@ -350,8 +374,8 @@ class MCQuestionPart(QuestionPart):
 
 
 class ArrayQuestionPart(QuestionPart):
-    def __init__(self, question_number: int, part: int, key, true_ans=[], ans=[]):
-        super().__init__(question_number, part, key)
+    def __init__(self, question_number: int, part: int, key, score: int = 0, weight: int = 1, true_ans=[], ans=[]):
+        super().__init__(question_number, part, key, score, weight)
         self.ans = ans
         self.true_ans = true_ans
 
@@ -363,8 +387,8 @@ class ArrayQuestionPart(QuestionPart):
 
 
 class SymbolicQuestionPart(QuestionPart):
-    def __init__(self, question_number, part, key, ans_value="", ans_vars=[]):
-        super().__init__(question_number, part, key)
+    def __init__(self, question_number, part, key, score: int = 0, weight: int = 1, ans_value="", ans_vars=[]):
+        super().__init__(question_number, part, key, score, weight)
         self.val = ans_value
         self.vars = ans_vars
 
@@ -376,13 +400,20 @@ class SymbolicQuestionPart(QuestionPart):
 
 class StudentQuestion:
     def __init__(self, q: QuestionInfo,
-                 raw_params: str, raw_ans_key: str, raw_student_answer: str,
+                 raw_params: str, raw_ans_key: str, raw_student_answer: str, raw_partial_scores: str,
                  file_bundle: StudentFileBundle,
-                 variant: str = None, score: float = 0, override_score: float = None):
+                 variant: str = None):
+        '''
+            creates a "student question", a grouping of question parts from the manual grading csv & files
+
+            we filter out the question parts that we don't care about when creating this internal representation
+            we find the list of desired question parts from the question information configuration that we pass 
+                to this class.
+        '''
         self.question = q
         self.file_bundle = file_bundle
         self.variant = variant if variant else q.qid
-        self.score = score if not override_score else override_score
+        self.score = json.loads(raw_partial_scores)
 
         ans_key = json.loads(raw_ans_key)
         self.part_count = len(q.parts) + len(q.expected_files)
@@ -390,43 +421,78 @@ class StudentQuestion:
         self.parts = self.get_question_parts(
             json.loads(raw_params),
             ans_key,
-            json.loads(raw_student_answer))
+            json.loads(raw_student_answer),
+            self.score)
 
-    def get_question_parts(self, params: dict(), ans_key: dict(), student_answer: dict()):
-        expected_parts = list(self.question.parts if len(self.question.parts) > 0 else filter(lambda k: k !="_file_editor", list(student_answer.keys())))
+    def get_question_parts(self, params: dict(), ans_key: dict(), student_answer: dict(), partial_scores: dict()):
+        '''
+            parses the question parts given:
+                - question params
+                - the given answer key
+                - the student's answer
+                - the partial score object
+
+            note that we do a one-to-one mapping from the student answer/answer key to the partial scores object.
+            hence, if the key doesn't exist on partial_scores, then we assign the question part a score of 0.
+
+            as files do not exist on partial_scores, we assign all associated files (i.e. those uploaded through file editor) a score of 0
+        '''
+        expected_parts = list(self.question.parts if len(
+            self.question.parts) > 0 else partial_scores.keys())
         parts = []
         q_no = self.question.number
         while len(expected_parts) > 0:
             p = expected_parts.pop(0)
             v = student_answer.get(p, None)
+            score = partial_scores.get(p, None)
+            s = int(score.get('score', 0)) if score else 0
+            w = int(score.get('weight', 1)) if score else 0
             part_no = len(parts) + 1
             if v is None:
                 v = "No answer provided."
-                part = StringQuestionPart(q_no, part_no, p, params.get(p, ""), ans_key.get(p, ""), v)
+                part = StringQuestionPart(q_no, part_no, p, s, w,
+                                          params.get(p, ""), ans_key.get(p, ""), v)
             elif p.find('res') == 0 and isinstance(ans_key.get(p, False), list) and isinstance(params.get(p, False), list):
-                part = MCQuestionPart(q_no, part_no, p, params.get(p, []), ans_key.get(p, []), v)
-            elif p.find(".") > 0 and p.rsplit(".", 1).pop().isnumeric():
-                key = p.rsplit(".", 1)[0]
-                regexp = re.compile(re.escape(key) + r"\.\d+$")
-                ans_keys = [x for x in expected_parts if regexp.match(x)]
-                ans_keys.sort()
-                expected_parts = [x for x in expected_parts if x not in ans_keys]
-                ans_vals = list(map(lambda x: student_answer.get(x, ""), ans_keys))
-                part = ArrayQuestionPart(q_no, part_no, f'Array {key}', ans=ans_vals)
+                part = MCQuestionPart(q_no, part_no, p, s, w,
+                                      params.get(p, []), ans_key.get(p, []), v)
+            elif isinstance(v, list):
+                part = ArrayQuestionPart(q_no, part_no, p, s, w,
+                                         ans_key.get(p, []), v)
             elif isinstance(v, dict) and v.get("_type", "") == "sympy":
-                part = SymbolicQuestionPart(q_no, part_no, p, v["_value"], v["_variables"])
+                part = SymbolicQuestionPart(q_no, part_no, p, s, w,
+                                            v["_value"], v["_variables"])
+            elif isinstance(v, dict) and v.get("_type", "") == "ndarray":
+                part = ArrayQuestionPart(q_no, part_no, p, s, w,
+                                         ans_key.get(p, {}).get(
+                                             '_value', [[]])[0],
+                                         v.get('_value', [[]])[0])
             elif not isinstance(v, (dict, list)):
-                part = StringQuestionPart(q_no, part_no, p, params.get(p, params), ans_key.get(p, ""), v)
+                part = StringQuestionPart(q_no, part_no, p, s, w,
+                                          params.get(p, params), ans_key.get(p, ""), v)
             else:
                 print("Skipping unsupported question part:", p, json.dumps(v))
                 continue
             parts.append(part)
 
-        file_names = list(self.question.expected_files or params.get('_required_file_names', []))
+        file_names = list(self.question.expected_files or params.get(
+            '_required_file_names', []))
         if len(file_names) > 0:
-            parts.append(FileQuestionPart(q_no, len(parts) + 1, 'files', files=file_names, file_bundle=self.file_bundle))
+            '''
+                create a file for each editor/upload file.
+                we assign a question weight of 0 since this wasn't a part of our initial
+                    partial_scores object
+            '''
+            parts.append(FileQuestionPart(q_no, len(parts) + 1, 'files', weight=0,
+                                          files=file_names, file_bundle=self.file_bundle))
 
         return parts
+
+    def get_score(self):
+        '''
+            returns the cumulative, weighted score of this question
+            TODO: Check out how PL uses question weights so we can calculate this correctly
+        '''
+        return 0
 
     def render(self, pdf: PDF, template=False):
         '''
@@ -437,7 +503,8 @@ class StudentQuestion:
         for i, p in enumerate(self.parts):
             if i != 0:
                 pdf.add_page()
-            p.render(pdf, self.score, template)
+            p.render(pdf, template)
+
 
 class Submission:
     '''
@@ -455,8 +522,12 @@ class Submission:
         return self.questions.get(variant)
 
     def render_front_page(self, pdf: PDF, template=False):
+        '''
+            renders the title page for a student submission
+        '''
         pdf.set_font(get_cfg('font', 'title', 'font', default="arial"),
-                     size=get_cfg('font', 'title', 'size', default=10, cast=int),
+                     size=get_cfg('font', 'title', 'size',
+                                  default=10, cast=int),
                      style="U")
         pdf.cell(0, 60, ln=1)
         id = self.uid if not template else " " * len(self.uid)
@@ -492,7 +563,6 @@ class Submission:
                         pdf.add_page()
                         sq.render(pdf, True)
 
-
     def list_questions(self, qMap: AssignmentConfig):
         '''
             lists the question variants the student has, in the order expected by qMap
@@ -507,5 +577,5 @@ class Submission:
                 sq = self.get_student_question(qv)
                 if sq != None:
                     count -= 1
-                    row.append([sq.variant, sq.part_count, sq.max_parts, sq.score])
+                    row.append([sq.variant, json.dumps(sq.score)])
         return row

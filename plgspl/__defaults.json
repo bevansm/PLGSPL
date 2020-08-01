@@ -10,6 +10,7 @@
     "default": 1
   },
   "files": {
+    "description": "extensions of files plgspl should treat as code, pictures, or markdown",
     "code": ["cpp", "h"],
     "pics": ["png", "jpeg"],
     "md": ["md"]

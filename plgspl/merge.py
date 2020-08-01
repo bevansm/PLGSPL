@@ -1,9 +1,18 @@
 import json
+import re
 import pandas as pd
 import numpy as np
 from functools import reduce
 from typing import List
 from math import ceil
+
+
+def get_part(q: str) -> str:
+    '''
+        returns the part name of a gradescope question part,
+        parsed from a string in the form of "<NAME> (1.0 pts)"
+    '''
+    return re.search(".*:(.*)\(.*", q).group(1).strip()
 
 
 def parse_points(q: str) -> float:
@@ -21,11 +30,12 @@ def get_total_points(ql: List[str]):
     '''
     return reduce(lambda acc, x: acc + parse_points(x), ql, 0)
 
+
 def get_question_number(q):
     '''
         returns the question number given a string in the form of "<NO>.<PART>: "
     '''
-    return int(q.split(":", 1)[0].split(".", 1)[0]) 
+    return int(q.split(":", 1)[0].split(".", 1)[0])
 
 
 def merge(qmap_json, gs_csv, instance=1):
@@ -39,9 +49,11 @@ def merge(qmap_json, gs_csv, instance=1):
     gs_question_parts = list(gs_df)[10:]
     gs_question_count = get_question_number(gs_question_parts[-1])
     gs_questions = [[] for _ in range(gs_question_count)]
+
     for p in gs_question_parts:
-        gs_questions[get_question_number(p) - 1].append(p)
-    gs_max_score = list(map(get_total_points, gs_questions))
+        qno = get_question_number(p) - 1
+        gs_questions[qno].append({'part': get_part(p), 'max': parse_points(p)})
+
     csv_rows = []
     for r in gs_df.itertuples():
         email = r[1]
@@ -51,18 +63,20 @@ def merge(qmap_json, gs_csv, instance=1):
             continue
 
         part_scores = list(r[10:])
-        for qInfo, parts, max_score in zip(pl_qmap[sid], gs_questions, gs_max_score):
+        for qInfo, parts in zip(pl_qmap[sid], gs_questions):
             variant = qInfo[0]
-            new_weight = ceil(qInfo[1]/qInfo[2] * 100)
-            old_score = qInfo[3]
+            partial_scores = json.loads(qInfo[1])
 
-            score = 0
-            for _ in range(len(parts)):
-                score += float(part_scores.pop())
-            score_perc = 0 if score == 0 else score/max_score
-            score_perc = min(new_weight * score_perc +  old_score, 100)
-            csv_rows.append([email, instance, variant, score_perc, f'{old_score} + {score}/{max_score} on gs'])
+            for p in parts:
+                score = float(part_scores.pop()) / p['max']
+                if p['part'] in partial_scores:
+                    partial_scores[p['part']]['score'] = score
+                else:
+                    partial_scores[p['part']] = {'score': score, 'weight': 1}
+
+            csv_rows.append([email, instance, variant,
+                             json.dumps(partial_scores)])
 
     pl_df = pd.DataFrame(
-        csv_rows, columns=['uid', 'instance', 'qid', 'score_perc', 'feedback'])
+        csv_rows, columns=['uid', 'instance', 'qid', 'partial_scores'])
     pl_df.to_csv('pl_scores.csv', index=False)
