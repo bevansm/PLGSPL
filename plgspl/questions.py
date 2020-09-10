@@ -195,7 +195,6 @@ class StudentFileBundle():
             font = get_cfg('font', 'code') if ext in get_cfg(
                 'files', 'code') else get_cfg('font', 'body')
             pdf.set_font(font['font'], size=font['size'])
-
             if blank:
                 pdf.cell(lineWidth, txt="This is a sample student answer.")
             elif ext in get_cfg('files', 'md'):
