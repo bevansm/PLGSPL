@@ -15,6 +15,9 @@
     "pics": ["png", "jpeg"],
     "md": ["md"]
   },
+  "questions": {
+    "dumpParams": true
+  },
   "page": {
     "description": "page sizes in mm",
     "lineWidth": 180,

@@ -65,7 +65,7 @@ def render_part_header(pdf: PDF, txt):
     '''
         renders a part header with the given text.
     '''
-    render_header(pdf, txt, get_cfg('font', 'subheader'))
+    render_header(pdf, txt, header_cfg=get_cfg('font', 'subheader'))
 
 
 def render_gs_anchor(pdf: PDF, variant, score=0):
@@ -413,12 +413,13 @@ class StudentQuestion:
         self.file_bundle = file_bundle
         self.variant = variant if variant else q.qid
         self.score = json.loads(raw_partial_scores)
+        self.params = json.loads(raw_params)
 
         ans_key = json.loads(raw_ans_key)
         self.part_count = len(q.parts) + len(q.expected_files)
         self.max_parts = len(q.expected_files) + len(ans_key)
         self.parts = self.get_question_parts(
-            json.loads(raw_params),
+            self.params,
             ans_key,
             json.loads(raw_student_answer),
             self.score)
@@ -499,6 +500,9 @@ class StudentQuestion:
             by default, does not start a new page for the first question.
         '''
         self.question.render(pdf)
+        if get_cfg('questions', 'dumpParams', default=False):
+            pdf.multi_cell(lineWidth, lineHeight, txt=json.dumps(self.params))
+            draw_line(pdf)
         for i, p in enumerate(self.parts):
             if i != 0:
                 pdf.add_page()
