@@ -16,7 +16,9 @@
     "md": ["md"]
   },
   "questions": {
-    "dumpParams": true
+    "dumpParams": true,
+    "mergeMethod": "total",
+    "description": "one of partial or total"
   },
   "page": {
     "description": "page sizes in mm",

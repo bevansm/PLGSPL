@@ -37,7 +37,7 @@ def to_pdf(info_json, manual_csv, file_dir=None):
         f'Parsing submissions from {manual_csv} and provided file directory (if any)')
     manual = pd.read_csv(manual_csv)
     for i, m in manual.iterrows():
-        uid_full = m['uid']
+        uid_full = m.get('uid', m.get('UID'))
         uid = str(uid_full).split("@", 1)[0]
 
         qid = m['qid']

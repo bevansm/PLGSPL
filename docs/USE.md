@@ -88,9 +88,13 @@ Below is a sample PLGSPL config for a single zone:
 
    1. Assign the UID line on the front page to an "ID Region"
    2. For each question:
+
       - Create a gradescope question. Note that the same question with multiple variants should be a single question on gradescope; create seperate rubric groups for each variant if needbe.
       - Pair each part of the question with their respective gradescope anchor boxes or the question area, as you see fit. Each question part should have a title corresponding to the PL part it came from, i.e. if the part was called "bestOrder123" on PL, you should give the GS question part a title of "bestOrder123"
       - Weight each part as you see fit. Remember that each question part will end up being out of max one point when re-uploaded to PL.
+      - An example outline (taken from a gs outline for [v2 of the samples](../res/plgspl_v2_sample))
+
+        ![Sample GradeScope Outline](sample_outline.JPG)
 
 5. Upload submission pdfs. Adjust splits as needed.
 6. As these pdfs are programatically generated, you should be able to group them easily.
