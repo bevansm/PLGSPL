@@ -86,7 +86,7 @@ def merge_total(qmap_json, gs_csv, instance=1):
             '''
             continue
 
-        part_scores = list(r[10:])
+        part_scores = list(r[11:])
         for qInfo, parts in zip(pl_qmap[sid], gs_questions):
             variant = qInfo[0]
             partial_scores = json.loads(qInfo[1])
@@ -137,7 +137,7 @@ def merge_partials(qmap_json, gs_csv, instance=1):
         if r[4] == "Missing":
             continue
 
-        part_scores = list(r[10:])
+        part_scores = list(r[11:])
         for qInfo, parts in zip(pl_qmap[sid], gs_questions):
             variant = qInfo[0]
             partial_scores = json.loads(qInfo[1])

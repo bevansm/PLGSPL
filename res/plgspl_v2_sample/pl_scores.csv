@@ -1,5 +1,5 @@
 uid,instance,qid,score_perc
-dev@illinois.edu,1,heap_shorts_array_implementation_mc,0.0
+dev@illinois.edu,1,heap_shorts_array_implementation_mc,1.0
 dev@illinois.edu,1,heap_shorts_build_heap,1.0
-dev@illinois.edu,1,heap_shorts_operations,0.3333333333333333
-dev@illinois.edu,1,disjt_unions,0.9999999999999999
+dev@illinois.edu,1,heap_shorts_operations,0.6666666666666666
+dev@illinois.edu,1,disjt_unions,0.8333333333333333
