@@ -56,7 +56,7 @@ def to_pdf(info_json, manual_csv, file_dir=None):
         if file_dir:
             for fn in os.listdir(file_dir):
                 # if it has the student id, and the qid_sid pair, count it as acceptable
-                if fn.find(uid_full) > -1 and fn.find(f'{qid}_{sid}') > -1 and qs.parse_filename(fn, qid) in q.expected_files:
+                if fn.find(uid_full) > -1 and fn.find(f'{qs.escape_qid(qid)}_{sid}') > -1 and qs.parse_filename(fn, qid) in q.expected_files:
                     fns.append(os.path.join(file_dir, fn))
                     q.add_file(os.path.join(file_dir, fn))
         submission.add_student_question(

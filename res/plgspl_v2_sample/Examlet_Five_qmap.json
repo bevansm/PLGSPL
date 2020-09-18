@@ -1,17 +1,1 @@
-{
-  "dev": [
-    [
-      "heap_shorts_array_implementation_mc",
-      "{\"heap_array\": {\"score\": 0, \"weight\": 4}}"
-    ],
-    ["heap_shorts_build_heap", "{\"arr\": {\"score\": 0, \"weight\": 4}}"],
-    [
-      "heap_shorts_operations",
-      "{\"heap_manipulation_insert\": {\"score\": 0, \"weight\": 1}, \"heap_manipulation_remove\": {\"score\": 0.25, \"weight\": 2}}"
-    ],
-    [
-      "disjt_unions",
-      "{\"height\": {\"score\": 0, \"weight\": 1}, \"unions\": {\"score\": 0, \"weight\": 1}, \"uptreenum\": {\"score\": 0, \"weight\": 1}, \"mdtest.md\": {\"score\": 0, \"weight\": 1}, \"mdtest.md\": {\"score\": 0, \"weight\": 1}}"
-    ]
-  ]
-}
+{"dev": [["heap_shorts_array_implementation_mc", "{\"heap_array\": {\"score\": 0, \"weight\": 4}}"], ["heap_shorts_build_heap", "{\"arr\": {\"score\": 0, \"weight\": 4}}"], ["heap_shorts_operations", "{\"heap_manipulation_insert\": {\"score\": 0, \"weight\": 2}, \"heap_manipulation_remove\": {\"score\": 0.25, \"weight\": 2}}"], ["disjt_unions", "{\"height\": {\"score\": 0, \"weight\": 1}, \"unions\": {\"score\": 0, \"weight\": 1}, \"uptreenum\": {\"score\": 0, \"weight\": 1}}"]]}

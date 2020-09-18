@@ -97,12 +97,21 @@ def render_gs_anchor(pdf: PDF, variant, score=0):
     pdf.ln()
 
 
+def escape_qid(qid):
+    '''
+        Replaces all "special" characters in the qid that should be underscores in the db
+    '''
+    return qid.replace("/", "_")
+
+
 def parse_filename(raw: str, qid):
     '''
         parses a pl filename, assuming it belongs to a question
         with the given question id.
     '''
-    return raw.rsplit(qid + "_", 1).pop().split("_", 1).pop()
+    parsed = raw.rsplit(escape_qid(qid) + "_",
+                        1).pop().split("_", 1).pop()
+    return parsed
 
 
 class QuestionInfo():
