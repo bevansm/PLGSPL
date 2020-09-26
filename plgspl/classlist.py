@@ -8,7 +8,7 @@ def classlist(pl_csv):
     '''
     pl_csv = pd.read_csv(pl_csv)
     students = dict()
-    for uin, uid in zip(pl_csv.UIN, pl_csv.uid):
+    for uin, uid in zip(pl_csv.UIN, pl_csv.UID):
         students[uin] = {'id': uin, 'email': uid}
 
     def to_gs_row(s):

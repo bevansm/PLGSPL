@@ -16,9 +16,10 @@
     "md": ["md"]
   },
   "questions": {
-    "dumpParams": true,
+    "dumpParams": false,
+    "dumpDescription": "dump json object context @ start of question",
     "mergeMethod": "total",
-    "description": "one of partial or total"
+    "mergeDescription": "one of partial or total. currently only total support."
   },
   "page": {
     "description": "page sizes in mm",

@@ -59,6 +59,7 @@ def to_pdf(info_json, manual_csv, file_dir=None):
                 if fn.find(uid_full) > -1 and fn.find(f'{qs.escape_qid(qid)}_{sid}') > -1 and qs.parse_filename(fn, qid) in q.expected_files:
                     fns.append(os.path.join(file_dir, fn))
                     q.add_file(os.path.join(file_dir, fn))
+
         submission.add_student_question(
             qs.StudentQuestion(q, m['params'], m['true_answer'],
                                m['submitted_answer'], m['partial_scores'],
@@ -76,6 +77,7 @@ def to_pdf(info_json, manual_csv, file_dir=None):
     missing_questions = []
     for i, (_, v) in enumerate(submissions.items()):
         v: qs.Submission
+        # print(f'Printing out {v.uid}\'s submission to a pdf')
         start_page = pdf.page_no()
         v.render_submission(
             pdf, config, template_submission=template_submission)
@@ -92,6 +94,7 @@ def to_pdf(info_json, manual_csv, file_dir=None):
                 exit(1)
             max_submissions = int(max_submissions)
         diff = pdf.page_no() - start_page
+
         if diff < expected_pages:
             missing_questions.append(v.uid)
         elif diff > expected_pages:

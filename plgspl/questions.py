@@ -421,9 +421,12 @@ class StudentQuestion:
         self.question = q
         self.file_bundle = file_bundle
         self.variant = variant if variant else q.qid
-        self.score = json.loads(raw_partial_scores)
-        self.params = json.loads(raw_params)
+        try:
+            self.score = json.loads(raw_partial_scores)
+        except TypeError:
+            self.score = {}
 
+        self.params = json.loads(raw_params)
         ans_key = json.loads(raw_ans_key)
         self.part_count = len(q.parts) + len(q.expected_files)
         self.max_parts = len(q.expected_files) + len(ans_key)
