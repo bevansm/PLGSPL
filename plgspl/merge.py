@@ -85,8 +85,12 @@ def merge_total(qmap_json, gs_csv, instance=1):
                 we'll just leave the partial score that's currently in there
             '''
             continue
+        elif sid == 'nan':
+            print("Skipping unpaired student...")
+            continue
 
         part_scores = list(r[11:])
+
         for qInfo, parts in zip(pl_qmap[sid], gs_questions):
             variant = qInfo[0]
             partial_scores = json.loads(qInfo[1])
@@ -105,7 +109,6 @@ def merge_total(qmap_json, gs_csv, instance=1):
             total_weight = sum(p['weight'] for p in partials)
             score_perc = sum(p['score'] * (p['weight'] / total_weight)
                              for p in partials)
-
             csv_rows.append([email, instance, variant, score_perc])
     pl_df = pd.DataFrame(
         csv_rows, columns=['uid', 'instance', 'qid', 'score_perc'])
