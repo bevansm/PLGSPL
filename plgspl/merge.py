@@ -107,8 +107,8 @@ def merge_total(qmap_json, gs_csv, instance=1):
             '''
             partials = partial_scores.values()
             total_weight = sum(p['weight'] for p in partials)
-            score_perc = sum(p['score'] * (p['weight'] / total_weight)
-                             for p in partials)
+            score_perc = ceil(100 * sum(p['score'] * (p['weight'] / total_weight)
+                                        for p in partials))
             csv_rows.append([email, instance, variant, score_perc])
     pl_df = pd.DataFrame(
         csv_rows, columns=['uid', 'instance', 'qid', 'score_perc'])
