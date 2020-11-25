@@ -2,13 +2,7 @@
 
 A Python tool to convert PrarieLearn CSV results and files into a single PDF for upload to GradeScope.
 
-Written at the University of British Columbia, intended for all.
-
 ## Context
-
-In 2019W2, [Paul Carter](https://www.cs.ubc.ca/people/paul-carter) created a python script to stitch together files from the `pl-file-editor` element to upload to GradeScope.
-
-Inspired by his work--and in desperate need for a way to grade manually during COVID--we built PLGSPL as a more general, easy way to export PrairieLearn manual grading results to a pdf for gradescope uploads and grading.
 
 There is an [issue open on PL](https://github.com/PrairieLearn/PrairieLearn/issues/2104) to support PDF exports for offline work and grading. We intend for this to be an intermediate solution.
 
@@ -61,7 +55,6 @@ There is an [issue open on PL](https://github.com/PrairieLearn/PrairieLearn/issu
 
 - [plgspl](plgspl): Cli scripts
 - [res](res): Sample Data & Outputs
-- [ctx](ctx): Paul's files
 - [docs](docs): Doccumentation
 
 ## Useful Scripts
